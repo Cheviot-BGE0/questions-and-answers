@@ -1,0 +1,19 @@
+{
+  "name": "questions-and-answers",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Cheviot-BGE0/questions-and-answers.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Cheviot-BGE0/questions-and-answers/issues"
+  },
+  "homepage": "https://github.com/Cheviot-BGE0/questions-and-answers#readme"
+}
