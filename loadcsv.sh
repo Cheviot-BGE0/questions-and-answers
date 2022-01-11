@@ -20,16 +20,16 @@ echo "input: $INPUT"
 
 while IFS= read -r line
 do
-  if [[ $CURRENTLINE -gt 0 ]]
+  if [ $CURRENTLINE -gt 0 ]
   then
     echo "$CURRENTLINE: $line"
+  else
+    echo "Loading lines:"
   fi
+
   ((CURRENTLINE+=1))
 
-  #TODO: remove this early break when script is working
-  #TODO: alternately, allow for command line inputs for start and stop lines
-  if [[ $CURRENTLINE -gt $ENDLINE ]]
-  then
+  if [ $ENDLINE -gt 0 -a $CURRENTLINE -gt $ENDLINE ]; then
     break
   fi
 done < "$INPUT"
