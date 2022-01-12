@@ -1,7 +1,8 @@
-import { Client } from 'pg';
+import pg from 'pg';
+const { Client } = pg;
 
-module.exports = new Client();
-await Client.connect()
 
-const res = Client.query('')
+const client = new Client();
+await client.connect()
 
+export default client;
