@@ -15,5 +15,9 @@
   "bugs": {
     "url": "https://github.com/Cheviot-BGE0/questions-and-answers/issues"
   },
-  "homepage": "https://github.com/Cheviot-BGE0/questions-and-answers#readme"
+  "homepage": "https://github.com/Cheviot-BGE0/questions-and-answers#readme",
+  "dependencies": {
+    "mongoose": "^6.1.6",
+    "pg": "^8.7.1"
+  }
 }
