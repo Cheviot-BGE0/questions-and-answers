@@ -21,9 +21,14 @@ const rl = readline.createInterface({
 });
 let lineNum = 0;
 for await (const line of rl) {
-  if (args.e > 0 && lineNum >= args.e){
+  if (lineNum === 0) {
+    //TODO: parse line into field names
+    //TODO: this is all async, it feels like the following lines could potentially get ahead of this line
+    console.log('reading data!')
+  } else if (args.e > 0 && lineNum > args.e){
     rl.close();
   } else {
+    //TODO: using field names from top of file, fill entry in table
     console.log(lineNum, line)
   }
   lineNum++;
