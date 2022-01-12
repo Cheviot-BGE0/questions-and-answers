@@ -1,5 +1,7 @@
 const { Client } = require('pg');
-const client = new Client();
+
+module.exports = new Client();
 await client.connect()
 
 const res = client.query('')
+
