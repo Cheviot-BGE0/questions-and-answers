@@ -17,16 +17,18 @@ overerror  overwrites the error output file, if it exists
 const args = parseArgs(['filePath', 'tableName'], ['overerror'], { end: 0, progress: 0 }, docs);
 args.end = parseInt(args.end);
 
-const stream = fs.createReadStream(args.filePath);
+const fileStream = fs.createReadStream(args.filePath);
 const rl = readline.createInterface({
-  input: stream,
+  input: fileStream,
   crlfDelay: Infinity,
 });
+
 let lineNum = 0;
 let fieldNames;
 let errorLines = 0;
 let writtenLines = 0;
 const errorFileName = `${args.tableName}_errorLines.csv`;
+const startTime = Date.now();
 
 const parseLine = (line) => {
   return line.split(/,+(?=(?:(?:[^"]*"){2})*[^"]*$)/g);
@@ -73,10 +75,12 @@ await client.query(`select nextval('public.${args.tableName}_id_seq')`);
 //read the file
 for await (const line of rl) {
   //maintain current line number regardless of how many times it's incremented later
+  const currentLine = lineNum;
   lineNum++;
-  const currentLine = lineNum - 1;
-  if (args.progress && currentLine % 100000) {
-    console.log('line ', currentLine);
+  if (currentLine  && currentLine % 500 === 0) {
+    process.stdout.clearLine();
+    process.stdout.cursorTo(0);
+    process.stdout.write(`current line: ${currentLine}, errors: ${errorLines}`)
   }
 
   if (currentLine === 0) {
@@ -93,7 +97,7 @@ for await (const line of rl) {
   } else if (args.end > 0 && currentLine > args.end) {
     //TODO: close isn't enough to end the reading.
     rl.close();
-    stream.close();
+    fileStream.close();
   } else {
     try {
       await insertQuery(line);
@@ -112,10 +116,12 @@ for await (const line of rl) {
 }
 
 console.log(
-  `write complete.
+  `
+  write complete after ${Date.now() - startTime} ms
   lines written successfully: ${writtenLines}
   lines with errors:          ${errorLines}`
 );
+
 
 //This is hacky, something isn't detaching right
 process.exit();
