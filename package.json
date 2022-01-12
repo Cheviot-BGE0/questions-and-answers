@@ -20,7 +20,8 @@
   "homepage": "https://github.com/Cheviot-BGE0/questions-and-answers#readme",
   "dependencies": {
     "mongoose": "^6.1.6",
-    "pg": "^8.7.1"
+    "pg": "^8.7.1",
+    "pg-format": "^1.0.4"
   },
   "devDependencies": {
     "eslint": "^8.6.0",
