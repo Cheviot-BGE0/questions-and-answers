@@ -1,7 +1,7 @@
-const { Client } = require('pg');
+import { Client } from 'pg';
 
 module.exports = new Client();
-await client.connect()
+await Client.connect()
 
-const res = client.query('')
+const res = Client.query('')
 
