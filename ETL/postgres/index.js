@@ -1,4 +1,3 @@
 import parseArgs from '../parseArgs.js';
 
-
-console.log(parseArgs(['a'], {'v': 0}))
+console.log(parseArgs(['filePath', 'tableName'], [], {'e': 0}))
