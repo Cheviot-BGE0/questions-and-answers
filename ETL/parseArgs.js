@@ -1,4 +1,5 @@
-const rawArgs = process.argv;
+
+const noDocs = 'No documentation was written ]:'
 
 /**
  * Parse command line arguments from node, setting defaults and throwing errors where it can.
@@ -7,7 +8,8 @@ const rawArgs = process.argv;
  * @param {object} namedVals Arguments expecting a value to follow, where key is the name and val is the default.
  * @returns an object with a list of arguments, and a namedArgs object containing argument name: value pairs
  */
-export default function parseArgs(bareArgs = [], flags = [], namedVals = {}) {
+export default function parseArgs(bareArgs = [], flags = [], namedVals = {}, docString = noDocs) {
+  const rawArgs = process.argv;
   const args = {};
   let bareArgIndex = 0;
   //assign defaults
@@ -18,6 +20,12 @@ export default function parseArgs(bareArgs = [], flags = [], namedVals = {}) {
     let arg = rawArgs[i];
     if (arg.startsWith('-')) {
       arg = arg.substring(1);
+
+      if (arg === 'h' || arg === 'help') {
+        console.log(docString);
+        process.exit()
+      }
+
       if (flags.some((flag) => flag === arg)) {
         args[arg] = true;
       } else if (namedVals[arg] !== undefined) {

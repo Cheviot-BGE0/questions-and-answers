@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "load-postgres": "node ETL/postgres someArg otherArg"
+    "import-postgres": "node ETL/postgres someArg otherArg"
   },
   "repository": {
     "type": "git",
