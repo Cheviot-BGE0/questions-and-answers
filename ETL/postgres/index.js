@@ -26,7 +26,7 @@ let lineNum = 0;
 let fieldNames;
 let errorLines = 0;
 let writtenLines = 0;
-const errorFileName = `${args.tableName}_errorLines`;
+const errorFileName = `${args.tableName}_errorLines.csv`;
 
 const parseLine = (line) => {
   return line.split(/,+(?=(?:(?:[^"]*"){2})*[^"]*$)/g);
@@ -38,11 +38,11 @@ if (!args.overerror) {
       if (err) return reject(err);
       for (const file of files) {
         if (file === errorFileName) {
-          reject(
-            new Error(
-              `error output file for this table already exists! Please delete or rename ${errorFileName} and try again.`
-            )
+          const error = new Error(
+            `error output file for this table already exists! Please delete or rename ${errorFileName} and try again.`
           );
+          console.error(error);
+          reject(error);
           process.exit();
         }
         resolve();
