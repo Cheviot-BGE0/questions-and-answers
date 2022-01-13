@@ -67,7 +67,7 @@ if (!args.overerror) {
 // ----------~~~~~~~~~~========== Command line interface ==========~~~~~~~~~~----------
 
 if (!args.U) args.U = await CLI('Postgres username: ');
-if (!args.p) args.p = await CLI('Postgres password: ');
+if (!args.p) args.p = await CLI('Postgres password: ', true);
 if (!args.database) args.database = await CLI('Postgres database name: ');
 if (!args.table) args.table = await CLI('table to import to: ');
 
