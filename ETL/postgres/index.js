@@ -7,13 +7,13 @@ import format from 'pg-format';
 //argument for server, username, password
 //TODO: prompt to input username, password
 //currently command looks like:
-//node ETL/postgres -U <username> -p <password> ../../SDC\ Data/answers_photos.csv questionsAndAnswers test
+//node ETL/postgres -U <username> -p <password> ../../SDC\ Data/questions.csv questionsAndAnswers test
 //TODO: delete errors file if no errors
 
 const docs = `
 Loads data from a proved CSV file into a postgres db.
 
-Syntax: node ETL/postgres "path/to/csv" database_name table_name [-h|batch|end|auto|map|overerror|user|pass]
+Syntax: node ETL/postgres "path/to/csv" database_name table_name [-h|batch|end|auto|map|overerror|U|p|abort]
 options:
 batch #     Number of entries to enter as a batch
 h           displays this help text
@@ -26,11 +26,12 @@ map 'name=newName,name2=newName2...'
 overerror   overwrites the error output file, if it exists
 U        username to connect to postgres (not stored)
 p        password to connect to postgres (not stored)
+abort    abort on errors
 `;
 
 const args = parseArgs(
   ['filePath', 'database', 'table'],
-  ['overerror'],
+  ['overerror', 'abort'],
   { end: 0, progress: 0, batch: 500, map: null, U: null, p: null },
   docs
 );
@@ -44,6 +45,8 @@ else {
     args.map[oldKey] = newKey;
   }
 }
+
+console.log(args.map)
 
 let fieldNames;
 let errorLines = 0;
@@ -75,6 +78,7 @@ if (!args.overerror) {
 const parseHeaders = (line) => {
   const fields = line.split(',');
   const mappedFields = fields.map((field, i) => {
+    field = field.trim();
     const mappedField = args.map[field];
     if (mappedField === '__skip__') {
       columnMask[i] = false;
@@ -86,7 +90,7 @@ const parseHeaders = (line) => {
   }).filter((field) => field)
   //TODO: format fields entries with pg-format to avoid sql injection
   fieldNames = mappedFields.join(', ');
-  console.log('writing to fields ', fieldNames);
+  console.log('writing to fields:', fieldNames);
 };
 
 const parseLine = (line) => {
@@ -117,7 +121,7 @@ const incrementQuery = (id) => {
   client.query(query);
 };
 
-const client = await postgres(args.user, args.database, args.pass)
+const client = await postgres(args.database, args.U, args.p)
 
 //ensure nextval exists
 await client.query(`select nextval('public.${args.table}_id_seq')`);
@@ -159,6 +163,9 @@ for await (const line of rl) {
         writtenLines += args.batch;
       }
     } catch (err) {
+      if (args.abort) {
+        throw (err);
+      }
       errorLines += args.batch;
 
       await new Promise((resolve, reject) => {

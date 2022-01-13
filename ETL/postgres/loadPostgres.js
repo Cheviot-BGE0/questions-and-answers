@@ -2,7 +2,7 @@ import pg from 'pg';
 const { Client } = pg;
 
 
-async function postgres(user, database, password) {
+async function postgres(database, user, password) {
   const client = new Client({
     user,
     database,
