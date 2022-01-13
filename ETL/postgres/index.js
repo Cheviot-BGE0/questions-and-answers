@@ -145,6 +145,7 @@ const client = await postgres(args.database, args.U, args.p);
 
 // ----------~~~~~~~~~~========== Begin reading and importing ==========~~~~~~~~~~----------
 
+console.log(`importing from ${args.filePath} to table ${args.table}`)
 const fileStream = fs.createReadStream(args.filePath);
 const rl = readline.createInterface({
   input: fileStream,
