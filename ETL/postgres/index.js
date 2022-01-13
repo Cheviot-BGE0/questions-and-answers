@@ -4,6 +4,12 @@ import readline from 'readline';
 import client from './loadPostgres.js';
 import format from 'pg-format';
 
+//argument for server, username, password
+//TODO: prompt to input username, password
+//currently command looks like:
+//PGUSER=postgres PGPASSWORD=14789 PGDATABASE=questionsAndAnswers node ETL/postgres ../../SDC\ Data/answers_photos.csv answers_photos
+//TODO: delete errors file if no errors
+
 const docs = `
 Loads data from a proved CSV file into a postgres db.
 
