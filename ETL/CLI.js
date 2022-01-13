@@ -2,12 +2,12 @@ import readline from 'readline';
 
 
 export default function (prompt, secret) {
-  function secretListener(chunk) {
+  function secretListener() {
     process.stdout.clearLine()
     process.stdout.cursorTo(0)
     process.stdout.write(prompt)
   }
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
@@ -20,6 +20,8 @@ export default function (prompt, secret) {
     rl.question(prompt, (output) => {
       rl.close();
       if (secret) {
+        process.stdout.clearLine();
+        process.stdout.cursorTo(0);
         process.stdin.removeListener('data', secretListener)
       }
       resolve(output);

@@ -101,7 +101,7 @@ function parseHeaders (line) {
     })
     .filter((field) => field);
   //TODO: format fields entries with pg-format to avoid sql injection
-  fieldNames = mappedFields.join(', ');
+  fieldNames = format('%s', mappedFields);
   console.log('writing to fields:', fieldNames);
 }
 
@@ -112,21 +112,23 @@ function parseLine (line) {
 
 async function insertBatch() {
   try {
-    let placeholderPlace = 1;
-    let valuePlaceholders = [];
-    const values = [];
-    batch.forEach((line) => {
-      const linePlaceholders = [];
-      const parsed = parseLine(line);
-      parsed.forEach((value) => {
-        values.push(value);
-        linePlaceholders.push(`$${placeholderPlace++}`);
-      });
-      valuePlaceholders.push(`\n(${linePlaceholders.join(', ')})`);
-      return;
-    });
-    const query = `insert into ${args.table} (${fieldNames}) values ${valuePlaceholders}`;
-    await client.query(query, values);
+    const data = batch.map(line => parseLine(line))
+    await client.query(format(`insert into ${args.table} (${fieldNames}) values %L`, data));
+    // let placeholderPlace = 1;
+    // let valuePlaceholders = [];
+    // const values = [];
+    // batch.forEach((line) => {
+    //   const linePlaceholders = [];
+    //   const parsed = parseLine(line);
+    //   parsed.forEach((value) => {
+    //     values.push(value);
+    //     linePlaceholders.push(`$${placeholderPlace++}`);
+    //   });
+    //   valuePlaceholders.push(`\n(${linePlaceholders.join(', ')})`);
+    //   return;
+    // });
+    // const query = `insert into ${args.table} (${fieldNames}) values ${valuePlaceholders}`;
+    // await client.query(query, values);
     writtenLines += batch.length;
     batch = [];
   } catch (err) {
