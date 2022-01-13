@@ -5,12 +5,6 @@ import postgres from './loadPostgres.js';
 import format from 'pg-format';
 import CLI from '../CLI.js';
 
-//argument for server, username, password
-//TODO: prompt to input username, password
-//currently command looks like:
-//node ETL/postgres -U <username> -p <password> ../../SDC\ Data/questions.csv questionsAndAnswers test
-//TODO: delete errors file if no errors
-
 const docs = `
 Loads data from a proved CSV file into a postgres db.
 
@@ -208,10 +202,7 @@ console.log(
 );
 
 try {
-  //process.exit();
   await client.end();
 } catch(err) {
   console.log('database did not disconnect gracefully')
 }
-
-//this throws an error even when it's called after all the data is done writing successfully
