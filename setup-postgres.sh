@@ -20,3 +20,5 @@ PGPASSWORD=$password psql -U $username $database -f ETL/postgres/schemaAnswersPh
 node ETL/postgres -U $username -p $password "${CSV}/questions.csv" $database questions
 node ETL/postgres -U $username -p $password "${CSV}/answers.csv" $database answers
 node ETL/postgres -U $username -p $password "${CSV}/answers_photos.csv" $database answers_photos
+
+echo "ETL complete! If there were any errors while loading, a CSV file for the corresponding database has been created containing the errored block."

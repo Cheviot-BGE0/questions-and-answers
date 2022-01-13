@@ -100,7 +100,6 @@ function parseHeaders(line) {
       return field;
     })
     .filter((field) => field);
-  //TODO: format fields entries with pg-format to avoid sql injection
   fieldNames = format('%s', mappedFields);
   console.log('writing to fields:', fieldNames);
 }
@@ -129,6 +128,7 @@ async function insertBatch() {
       });
     }
     errorLines += batch.length;
+    //TODO: attempt to load each item in the block individually, and write just the lines that error from that attempt to the csv
     await new Promise((resolve, reject) => {
       fs.appendFile(errorFileName, `\n${batch.join('\n')}`, (err) => {
         if (err) return reject(err);
