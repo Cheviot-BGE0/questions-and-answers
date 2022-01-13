@@ -49,6 +49,8 @@ else {
   }
 }
 
+const errorFileName = `${args.table}_errorLines.csv`;
+
 if (!args.overerror) {
   await new Promise((resolve, reject) => {
     fs.readdir('./', (err, files) => {
@@ -77,7 +79,6 @@ if (!args.table) args.table = await CLI('table to import to: ');
 
 // ----------~~~~~~~~~~========== Values to persist between read loop iterations ==========~~~~~~~~~~----------
 
-const errorFileName = `${args.table}_errorLines.csv`;
 const startTime = new Date();
 const columnMask = [];
 
@@ -218,5 +219,4 @@ console.log(
   lines with errors:          ${errorLines}`
 );
 
-//This is hacky, something isn't detaching right
-//process.exit();
+await client.end();
