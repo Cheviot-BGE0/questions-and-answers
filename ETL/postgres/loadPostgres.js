@@ -2,7 +2,15 @@ import pg from 'pg';
 const { Client } = pg;
 
 
-const client = new Client();
-await client.connect()
+async function postgres(user, database, password) {
+  const client = new Client({
+    user,
+    database,
+    password
+  });
+  await client.connect()
+  return client;
+}
 
-export default client;
+
+export default postgres;

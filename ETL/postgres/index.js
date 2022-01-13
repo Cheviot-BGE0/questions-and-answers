@@ -1,41 +1,57 @@
 import parseArgs from '../parseArgs.js';
 import fs from 'fs';
 import readline from 'readline';
-import client from './loadPostgres.js';
+import postgres from './loadPostgres.js';
 import format from 'pg-format';
 
 //argument for server, username, password
 //TODO: prompt to input username, password
 //currently command looks like:
-//PGUSER=postgres PGPASSWORD=14789 PGDATABASE=questionsAndAnswers node ETL/postgres ../../SDC\ Data/answers_photos.csv answers_photos
+//node ETL/postgres -U <username> -p <password> ../../SDC\ Data/answers_photos.csv questionsAndAnswers test
 //TODO: delete errors file if no errors
 
 const docs = `
 Loads data from a proved CSV file into a postgres db.
 
-Syntax: node ETL/postgres "path/to/csv" database_name [-h|end #]
+Syntax: node ETL/postgres "path/to/csv" database_name table_name [-h|batch|end|auto|map|overerror|user|pass]
 options:
-batch #    Number of entries to enter as a batch
-h          displays this help text
-end #      ends the csv file read after # lines
-overerror  overwrites the error output file, if it exists
+batch #     Number of entries to enter as a batch
+h           displays this help text
+end #       ends the csv file read after # lines
+auto 'val'  sets the name of the column that is auto-incremented (leave blank for none)
+map 'name=newName,name2=newName2...'
+            maps names from the csv file into different columns in the table
+            use csvName=columnName format, separate multipleentries with commas
+            use __skip__ to skip a column when importing
+overerror   overwrites the error output file, if it exists
+U        username to connect to postgres (not stored)
+p        password to connect to postgres (not stored)
 `;
 
 const args = parseArgs(
-  ['filePath', 'tableName'],
+  ['filePath', 'database', 'table'],
   ['overerror'],
-  { end: 0, progress: 0, batch: 500 },
+  { end: 0, progress: 0, batch: 500, map: null, U: null, p: null },
   docs
 );
 args.end = parseInt(args.end);
-
+if (!args.map) args.map = {};
+else {
+  const mapArray = args.map.split(',');
+  args.map = {};
+  for (const map of mapArray) {
+    const [oldKey, newKey] = map.split('=');
+    args.map[oldKey] = newKey;
+  }
+}
 
 let fieldNames;
 let errorLines = 0;
 let writtenLines = 0;
-const errorFileName = `${args.tableName}_errorLines.csv`;
+const errorFileName = `${args.table}_errorLines.csv`;
 const startTime = new Date();
 let batch = [];
+const columnMask = [];
 
 if (!args.overerror) {
   await new Promise((resolve, reject) => {
@@ -56,8 +72,26 @@ if (!args.overerror) {
   });
 }
 
+const parseHeaders = (line) => {
+  const fields = line.split(',');
+  const mappedFields = fields.map((field, i) => {
+    const mappedField = args.map[field];
+    if (mappedField === '__skip__') {
+      columnMask[i] = false;
+      return;
+    }
+    columnMask[i] = true;
+    if (mappedField) return mappedField;
+    return field;
+  }).filter((field) => field)
+  //TODO: format fields entries with pg-format to avoid sql injection
+  fieldNames = mappedFields.join(', ');
+  console.log('writing to fields ', fieldNames);
+};
+
 const parseLine = (line) => {
-  return line.split(/,+(?=(?:(?:[^"]*"){2})*[^"]*$)/g);
+  const splitLine = line.split(/,+(?=(?:(?:[^"]*"){2})*[^"]*$)/g);
+  return splitLine.filter((entry, i) => columnMask[i])
 };
 
 const insertBatch = () => {
@@ -74,17 +108,19 @@ const insertBatch = () => {
     valuePlaceholders.push(`\n(${linePlaceholders.join(', ')})`);
     return;
   });
-  const query = `insert into ${args.tableName} (${fieldNames}) values ${valuePlaceholders}`;
+  const query = `insert into ${args.table} (${fieldNames}) values ${valuePlaceholders}`;
   return client.query(query, values);
 };
 
 const incrementQuery = (id) => {
-  const query = `select setval('public.${args.tableName}_id_seq', greatest( currval('public.${args.tableName}_id_seq'), ${id}) + 1)`;
+  const query = `select setval('public.${args.table}_id_seq', greatest( currval('public.${args.table}_id_seq'), ${id}) + 1)`;
   client.query(query);
 };
 
+const client = await postgres(args.user, args.database, args.pass)
+
 //ensure nextval exists
-await client.query(`select nextval('public.${args.tableName}_id_seq')`);
+await client.query(`select nextval('public.${args.table}_id_seq')`);
 
 const fileStream = fs.createReadStream(args.filePath);
 const rl = readline.createInterface({
@@ -104,10 +140,7 @@ for await (const line of rl) {
   }
 
   if (lineNum === 0) {
-    const fields = line.split(',');
-    //TODO: format fields entries with pg-format to avoid sql injection
-    fieldNames = fields.join(', ');
-    console.log('assigned fieldNames to ', fields.join(', '));
+    parseHeaders(line);
     await new Promise((resolve, reject) => {
       fs.writeFile(errorFileName, line, (err) => {
         if (err) return reject(err);
@@ -118,7 +151,6 @@ for await (const line of rl) {
     rl.close();
     fileStream.close();
   } else if (!args.end || lineNum < args.end) {
-
     batch.push(line);
     try {
       if (batch.length === args.batch) {
@@ -140,12 +172,11 @@ for await (const line of rl) {
   }
 }
 
-try{
-  await incrementQuery(lineNum)
-} catch(err) {
-  console.error('entries were written, but auto-increment id was unable to be updated!')
+try {
+  await incrementQuery(lineNum);
+} catch (err) {
+  console.error('entries were written, but auto-increment id was unable to be updated!');
 }
-
 
 console.log(
   `
