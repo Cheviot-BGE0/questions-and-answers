@@ -30,6 +30,8 @@ p        password to connect to postgres (not stored)
 abort    abort on errors
 `;
 
+// ----------~~~~~~~~~~========== Process command line arguments ==========~~~~~~~~~~----------
+
 const args = parseArgs(
   ['filePath', 'database', 'table'],
   ['overerror', 'abort'],
@@ -46,20 +48,6 @@ else {
     args.map[oldKey] = newKey;
   }
 }
-
-if (!args.U) args.U = await CLI('Postgres username: ');
-if (!args.p) args.p = await CLI('Postgres password: ');
-if (!args.database) args.database = await CLI('Postgres database name: ');
-if (!args.table) args.table = await CLI('table to import to: ');
-
-let fieldNames;
-let inputFieldNames;
-let errorLines = 0;
-let writtenLines = 0;
-const errorFileName = `${args.table}_errorLines.csv`;
-const startTime = new Date();
-let batch = [];
-const columnMask = [];
 
 if (!args.overerror) {
   await new Promise((resolve, reject) => {
@@ -79,6 +67,27 @@ if (!args.overerror) {
     });
   });
 }
+
+// ----------~~~~~~~~~~========== Command line interface ==========~~~~~~~~~~----------
+
+if (!args.U) args.U = await CLI('Postgres username: ');
+if (!args.p) args.p = await CLI('Postgres password: ');
+if (!args.database) args.database = await CLI('Postgres database name: ');
+if (!args.table) args.table = await CLI('table to import to: ');
+
+// ----------~~~~~~~~~~========== Values to persist between read loop iterations ==========~~~~~~~~~~----------
+
+const errorFileName = `${args.table}_errorLines.csv`;
+const startTime = new Date();
+const columnMask = [];
+
+let fieldNames;
+let inputFieldNames;
+let errorLines = 0;
+let writtenLines = 0;
+let batch = [];
+
+// ----------~~~~~~~~~~========== Helper functions ==========~~~~~~~~~~----------
 
 const parseHeaders = (line) => {
   inputFieldNames = line;
@@ -129,10 +138,14 @@ const incrementQuery = (id) => {
   client.query(query);
 };
 
+// ----------~~~~~~~~~~========== Connect to database ==========~~~~~~~~~~----------
+
 const client = await postgres(args.database, args.U, args.p);
 
 //ensure nextval exists
 await client.query(`select nextval('public.${args.table}_id_seq')`);
+
+// ----------~~~~~~~~~~========== Begin reading and importing ==========~~~~~~~~~~----------
 
 const fileStream = fs.createReadStream(args.filePath);
 const rl = readline.createInterface({
@@ -188,11 +201,15 @@ for await (const line of rl) {
   }
 }
 
+// ----------~~~~~~~~~~========== Advance the auto-increment field counter ==========~~~~~~~~~~----------
+
 try {
   await incrementQuery(lineNum);
 } catch (err) {
   console.error('entries were written, but auto-increment id was unable to be updated!');
 }
+
+// ----------~~~~~~~~~~========== display statistics ==========~~~~~~~~~~----------
 
 console.log(
   `
@@ -202,4 +219,4 @@ console.log(
 );
 
 //This is hacky, something isn't detaching right
-process.exit();
+//process.exit();
