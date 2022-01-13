@@ -5,8 +5,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "postinstall": "chmod +x setup-postgres.sh",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "import-postgres": "node ETL/postgres someArg otherArg"
+    "import-postgres": "node ETL/postgres someArg otherArg",
+    "setup-postgres": "./setup-postgres.sh"
   },
   "repository": {
     "type": "git",
