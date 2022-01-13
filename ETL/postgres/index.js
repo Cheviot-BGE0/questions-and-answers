@@ -3,6 +3,7 @@ import fs from 'fs';
 import readline from 'readline';
 import postgres from './loadPostgres.js';
 import format from 'pg-format';
+import CLI from '../CLI.js';
 
 //argument for server, username, password
 //TODO: prompt to input username, password
@@ -46,9 +47,13 @@ else {
   }
 }
 
-console.log(args.map)
+if (!args.U) args.U = await CLI('Postgres username: ');
+if (!args.p) args.p = await CLI('Postgres password: ');
+if (!args.database) args.database = await CLI('Postgres database name: ');
+if (!args.table) args.table = await CLI('table to import to: ');
 
 let fieldNames;
+let inputFieldNames;
 let errorLines = 0;
 let writtenLines = 0;
 const errorFileName = `${args.table}_errorLines.csv`;
@@ -76,18 +81,21 @@ if (!args.overerror) {
 }
 
 const parseHeaders = (line) => {
+  inputFieldNames = line;
   const fields = line.split(',');
-  const mappedFields = fields.map((field, i) => {
-    field = field.trim();
-    const mappedField = args.map[field];
-    if (mappedField === '__skip__') {
-      columnMask[i] = false;
-      return;
-    }
-    columnMask[i] = true;
-    if (mappedField) return mappedField;
-    return field;
-  }).filter((field) => field)
+  const mappedFields = fields
+    .map((field, i) => {
+      field = field.trim();
+      const mappedField = args.map[field];
+      if (mappedField === '__skip__') {
+        columnMask[i] = false;
+        return;
+      }
+      columnMask[i] = true;
+      if (mappedField) return mappedField;
+      return field;
+    })
+    .filter((field) => field);
   //TODO: format fields entries with pg-format to avoid sql injection
   fieldNames = mappedFields.join(', ');
   console.log('writing to fields:', fieldNames);
@@ -95,7 +103,7 @@ const parseHeaders = (line) => {
 
 const parseLine = (line) => {
   const splitLine = line.split(/,+(?=(?:(?:[^"]*"){2})*[^"]*$)/g);
-  return splitLine.filter((entry, i) => columnMask[i])
+  return splitLine.filter((entry, i) => columnMask[i]);
 };
 
 const insertBatch = () => {
@@ -121,7 +129,7 @@ const incrementQuery = (id) => {
   client.query(query);
 };
 
-const client = await postgres(args.database, args.U, args.p)
+const client = await postgres(args.database, args.U, args.p);
 
 //ensure nextval exists
 await client.query(`select nextval('public.${args.table}_id_seq')`);
@@ -145,12 +153,6 @@ for await (const line of rl) {
 
   if (lineNum === 0) {
     parseHeaders(line);
-    await new Promise((resolve, reject) => {
-      fs.writeFile(errorFileName, line, (err) => {
-        if (err) return reject(err);
-        resolve();
-      });
-    });
   } else if (args.end > 0 && lineNum === args.end) {
     rl.close();
     fileStream.close();
@@ -164,10 +166,17 @@ for await (const line of rl) {
       }
     } catch (err) {
       if (args.abort) {
-        throw (err);
+        throw err;
+      }
+      if (errorLines === 0) {
+        await new Promise((resolve, reject) => {
+          fs.writeFile(errorFileName, inputFieldNames, (err) => {
+            if (err) return reject(err);
+            resolve();
+          });
+        });
       }
       errorLines += args.batch;
-
       await new Promise((resolve, reject) => {
         fs.appendFile(errorFileName, `\n${batch.join('\n')}`, (err) => {
           if (err) return reject(err);
