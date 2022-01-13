@@ -84,7 +84,7 @@ let batch = [];
 
 // ----------~~~~~~~~~~========== Helper functions ==========~~~~~~~~~~----------
 
-function parseHeaders (line) {
+function parseHeaders(line) {
   inputFieldNames = line;
   const fields = line.split(',');
   const mappedFields = fields
@@ -105,30 +105,15 @@ function parseHeaders (line) {
   console.log('writing to fields:', fieldNames);
 }
 
-function parseLine (line) {
+function parseLine(line) {
   const splitLine = line.split(/,+(?=(?:(?:[^"]*"){2})*[^"]*$)/g);
   return splitLine.filter((entry, i) => columnMask[i]);
 }
 
 async function insertBatch() {
   try {
-    const data = batch.map(line => parseLine(line))
+    const data = batch.map((line) => parseLine(line));
     await client.query(format(`insert into ${args.table} (${fieldNames}) values %L`, data));
-    // let placeholderPlace = 1;
-    // let valuePlaceholders = [];
-    // const values = [];
-    // batch.forEach((line) => {
-    //   const linePlaceholders = [];
-    //   const parsed = parseLine(line);
-    //   parsed.forEach((value) => {
-    //     values.push(value);
-    //     linePlaceholders.push(`$${placeholderPlace++}`);
-    //   });
-    //   valuePlaceholders.push(`\n(${linePlaceholders.join(', ')})`);
-    //   return;
-    // });
-    // const query = `insert into ${args.table} (${fieldNames}) values ${valuePlaceholders}`;
-    // await client.query(query, values);
     writtenLines += batch.length;
     batch = [];
   } catch (err) {
@@ -191,7 +176,7 @@ for await (const line of rl) {
 
 //push the remaining values
 if (batch.length) {
-  await insertBatch(true)
+  await insertBatch(true);
 }
 
 // ----------~~~~~~~~~~========== display statistics ==========~~~~~~~~~~----------
@@ -205,6 +190,6 @@ console.log(
 
 try {
   await client.end();
-} catch(err) {
-  console.log('database did not disconnect gracefully')
+} catch (err) {
+  console.log('database did not disconnect gracefully');
 }

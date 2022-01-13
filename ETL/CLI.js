@@ -2,7 +2,9 @@ import readline from 'readline';
 
 
 export default function (prompt, secret) {
-  function secretListener() {
+  function secretListener(chunk) {
+    //carriage return
+    if (chunk[0] === 13) return;
     process.stdout.clearLine()
     process.stdout.cursorTo(0)
     process.stdout.write(prompt)
@@ -20,8 +22,6 @@ export default function (prompt, secret) {
     rl.question(prompt, (output) => {
       rl.close();
       if (secret) {
-        process.stdout.clearLine();
-        process.stdout.cursorTo(0);
         process.stdin.removeListener('data', secretListener)
       }
       resolve(output);
