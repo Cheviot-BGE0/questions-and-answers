@@ -90,7 +90,7 @@ let batch = [];
 
 // ----------~~~~~~~~~~========== Helper functions ==========~~~~~~~~~~----------
 
-const parseHeaders = (line) => {
+function parseHeaders (line) {
   inputFieldNames = line;
   const fields = line.split(',');
   const mappedFields = fields
@@ -109,42 +109,58 @@ const parseHeaders = (line) => {
   //TODO: format fields entries with pg-format to avoid sql injection
   fieldNames = mappedFields.join(', ');
   console.log('writing to fields:', fieldNames);
-};
+}
 
-const parseLine = (line) => {
+function parseLine (line) {
   const splitLine = line.split(/,+(?=(?:(?:[^"]*"){2})*[^"]*$)/g);
   return splitLine.filter((entry, i) => columnMask[i]);
-};
+}
 
-const insertBatch = () => {
-  let placeholderPlace = 1;
-  let valuePlaceholders = [];
-  const values = [];
-  batch.forEach((line) => {
-    const linePlaceholders = [];
-    const parsed = parseLine(line);
-    parsed.forEach((value) => {
-      values.push(value);
-      linePlaceholders.push(`$${placeholderPlace++}`);
+async function insertBatch() {
+  try {
+    let placeholderPlace = 1;
+    let valuePlaceholders = [];
+    const values = [];
+    batch.forEach((line) => {
+      const linePlaceholders = [];
+      const parsed = parseLine(line);
+      parsed.forEach((value) => {
+        values.push(value);
+        linePlaceholders.push(`$${placeholderPlace++}`);
+      });
+      valuePlaceholders.push(`\n(${linePlaceholders.join(', ')})`);
+      return;
     });
-    valuePlaceholders.push(`\n(${linePlaceholders.join(', ')})`);
-    return;
-  });
-  const query = `insert into ${args.table} (${fieldNames}) values ${valuePlaceholders}`;
-  return client.query(query, values);
-};
-
-const incrementQuery = (id) => {
-  const query = `select setval('public.${args.table}_id_seq', greatest( currval('public.${args.table}_id_seq'), ${id}) + 1)`;
-  client.query(query);
-};
+    const query = `insert into ${args.table} (${fieldNames}) values ${valuePlaceholders}`;
+    await client.query(query, values);
+    writtenLines += batch.length;
+    batch = [];
+  } catch (err) {
+    if (args.abort) {
+      throw err;
+    }
+    if (errorLines === 0) {
+      await new Promise((resolve, reject) => {
+        fs.writeFile(errorFileName, inputFieldNames, (err) => {
+          if (err) return reject(err);
+          resolve();
+        });
+      });
+    }
+    errorLines += batch.length;
+    await new Promise((resolve, reject) => {
+      fs.appendFile(errorFileName, `\n${batch.join('\n')}`, (err) => {
+        if (err) return reject(err);
+        resolve();
+      });
+    });
+    batch = [];
+  }
+}
 
 // ----------~~~~~~~~~~========== Connect to database ==========~~~~~~~~~~----------
 
 const client = await postgres(args.database, args.U, args.p);
-
-//ensure nextval exists
-await client.query(`select nextval('public.${args.table}_id_seq')`);
 
 // ----------~~~~~~~~~~========== Begin reading and importing ==========~~~~~~~~~~----------
 
@@ -164,7 +180,6 @@ for await (const line of rl) {
     process.stdout.cursorTo(0);
     process.stdout.write(`current line: ${lineNum}, errors: ${errorLines}`);
   }
-
   if (lineNum === 0) {
     parseHeaders(line);
   } else if (args.end > 0 && lineNum === args.end) {
@@ -172,42 +187,15 @@ for await (const line of rl) {
     fileStream.close();
   } else if (!args.end || lineNum < args.end) {
     batch.push(line);
-    try {
-      if (batch.length === args.batch) {
-        await insertBatch();
-        batch = [];
-        writtenLines += args.batch;
-      }
-    } catch (err) {
-      if (args.abort) {
-        throw err;
-      }
-      if (errorLines === 0) {
-        await new Promise((resolve, reject) => {
-          fs.writeFile(errorFileName, inputFieldNames, (err) => {
-            if (err) return reject(err);
-            resolve();
-          });
-        });
-      }
-      errorLines += args.batch;
-      await new Promise((resolve, reject) => {
-        fs.appendFile(errorFileName, `\n${batch.join('\n')}`, (err) => {
-          if (err) return reject(err);
-          resolve();
-        });
-      });
-      batch = [];
+    if (batch.length === args.batch) {
+      await insertBatch();
     }
   }
 }
 
-// ----------~~~~~~~~~~========== Advance the auto-increment field counter ==========~~~~~~~~~~----------
-
-try {
-  await incrementQuery(lineNum);
-} catch (err) {
-  console.error('entries were written, but auto-increment id was unable to be updated!');
+//push the remaining values
+if (batch.length) {
+  await insertBatch(true)
 }
 
 // ----------~~~~~~~~~~========== display statistics ==========~~~~~~~~~~----------
@@ -219,4 +207,11 @@ console.log(
   lines with errors:          ${errorLines}`
 );
 
-await client.end();
+try {
+  //process.exit();
+  await client.end();
+} catch(err) {
+  console.log('database did not disconnect gracefully')
+}
+
+//this throws an error even when it's called after all the data is done writing successfully
