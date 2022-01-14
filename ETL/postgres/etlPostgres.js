@@ -170,7 +170,7 @@ module.exports = async function main() {
 
   // ----------~~~~~~~~~~========== Begin reading and importing ==========~~~~~~~~~~----------
 
-  CLI.log( args.silent, `importing from ${args.filePath} to table ${args.table}`);
+  CLI.log(args.silent, `importing from ${args.filePath} to table ${args.table}`);
   const fileStream = fs.createReadStream(args.filePath);
   const rl = readline.createInterface({
     input: fileStream,
@@ -184,9 +184,7 @@ module.exports = async function main() {
     lineNum++;
     if (lineNum && lineNum % 500 === 0) {
       //TODO: get filesize, compare to byte count, make an actual progress bar (or at least a percentage readout)
-      process.stdout.clearLine();
-      process.stdout.cursorTo(0);
-      process.stdout.write(`current line: ${lineNum}, errors: ${errorLines}`);
+      CLI.progress(args.silent, `current line: ${lineNum}, errors: ${errorLines}`);
     }
     if (lineNum === 0) {
       parseHeaders(line);
