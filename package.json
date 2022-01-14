@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "postinstall": "chmod +x setup-postgres.sh",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "import-postgres": "node ETL/postgres someArg otherArg",
     "setup-postgres": "./setup-postgres.sh"
   },

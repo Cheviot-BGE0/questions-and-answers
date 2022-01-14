@@ -1,9 +1,16 @@
-import parseArgs from '../parseArgs.js';
-import fs from 'fs';
-import readline from 'readline';
-import postgres from './loadPostgres.js';
-import format from 'pg-format';
-import CLI from '../CLI.js';
+// import parseArgs from '../parseArgs.js';
+// import fs from 'fs';
+// import readline from 'readline';
+// import postgres from './loadPostgres.js';
+// import format from 'pg-format';
+// import CLI from '../CLI.js';
+
+const parseArgs = require('../parseArgs.js');
+const fs = require('fs');
+const readline = require('readline');
+const postgres = require('./loadPostgres.js');
+const format = require('pg-format');
+const CLI = require('../CLI.js');
 
 const docs = `
 Loads data from a proved CSV file into a postgres db.
@@ -145,7 +152,7 @@ const client = await postgres(args.database, args.U, args.p);
 
 // ----------~~~~~~~~~~========== Begin reading and importing ==========~~~~~~~~~~----------
 
-console.log(`importing from ${args.filePath} to table ${args.table}`)
+console.log(`importing from ${args.filePath} to table ${args.table}`);
 const fileStream = fs.createReadStream(args.filePath);
 const rl = readline.createInterface({
   input: fileStream,
