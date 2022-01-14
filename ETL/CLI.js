@@ -1,7 +1,7 @@
-import readline from 'readline';
+const readline = require('readline');
 
 
-export default function (prompt, secret) {
+module.exports = function (prompt, secret) {
   function secretListener(chunk) {
     //carriage return
     if (chunk[0] === 13) return;

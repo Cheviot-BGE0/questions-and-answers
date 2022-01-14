@@ -8,7 +8,7 @@ const noDocs = 'No documentation was written ]:'
  * @param {object} namedVals Arguments expecting a value to follow, where key is the name and val is the default.
  * @returns an object with a list of arguments, and a namedArgs object containing argument name: value pairs
  */
-export default function parseArgs(bareArgs = [], flags = [], namedVals = {}, docString = noDocs) {
+module.exports = function parseArgs(bareArgs = [], flags = [], namedVals = {}, docString = noDocs) {
   const rawArgs = process.argv;
   const args = {};
   let bareArgIndex = 0;

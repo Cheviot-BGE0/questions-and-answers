@@ -1,6 +1,4 @@
-import pg from 'pg';
-const { Client } = pg;
-
+const { Client } = require('pg');
 
 async function postgres(database, user, password) {
   const client = new Client({
@@ -12,5 +10,4 @@ async function postgres(database, user, password) {
   return client;
 }
 
-
-export default postgres;
+module.exports = postgres;
