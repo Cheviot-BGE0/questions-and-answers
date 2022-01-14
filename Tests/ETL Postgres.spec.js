@@ -87,7 +87,6 @@ describe('Postgres ETL', () => {
     const errorFileExists = fs.existsSync('test_errorLines.csv');
     expect(errorFileExists).toBe(true);
     if (errorFileExists) {
-      console.log('cleaning up intentionally created error file');
       fs.rmSync('./test_errorLines.csv');
     }
   });

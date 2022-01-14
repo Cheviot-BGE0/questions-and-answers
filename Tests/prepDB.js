@@ -8,10 +8,9 @@ module.exports = async function() {
     password: config.password,
   })
   await setupClient.connect();
-  try {
+  const dbExists = await setupClient.query(`SELECT datname FROM pg_catalog.pg_database WHERE datname='${config.database}'`)
+  if (!dbExists.rows.length) {
     await setupClient.query(`create database ${config.database}`);
-  } catch (err) {
-    console.log('testdb already exists');
   }
   setupClient.end();
 

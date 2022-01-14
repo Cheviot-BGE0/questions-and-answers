@@ -211,7 +211,8 @@ module.exports = async function main() {
     `
     write complete after ${(new Date() - startTime) / 1000} s
     lines written successfully: ${writtenLines}
-    lines with errors:          ${errorLines}`
+    lines with errors:          ${errorLines}
+    `
   );
 
   try {
