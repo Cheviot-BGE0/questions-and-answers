@@ -22,7 +22,7 @@ describe('Postgres ETL', () => {
       primary key(id)
     )`);
     if (fs.existsSync('test_errorLines.csv')) {
-      console.log('deleting error file')
+      console.log('deleting error file');
       fs.rmSync('./test_errorLines.csv');
     }
   });
@@ -43,7 +43,9 @@ describe('Postgres ETL', () => {
       config.database,
       'test',
       '-map',
+      //remapping `date_written` to `written`, skipping over `asker_email` col complete
       'date_written=written,asker_email=__skip__',
+      '-silent',
     ];
     await etlPostgres();
     //check if database has the right number of entries
@@ -67,20 +69,26 @@ describe('Postgres ETL', () => {
     //check that there's no error file
     expect(fs.existsSync('test_errorLines.csv')).toEqual(false);
   });
-  // it('should create a csv file with errored lines when lines cause errors', async function (done) {
-  //   process.argv = [
-  //     'fakepath',
-  //     'fakepath2',
-  //     '-U',
-  //     config.user,
-  //     '-p',
-  //     config.password,
-  //     '../../tests/dummy.csv',
-  //     config.database,
-  //     'test',
-  //   ];
-  //   await etlPostgres();
-
-  //   done();
-  // });
+  it('should create a csv file with errored lines when lines cause errors', async function () {
+    process.argv = [
+      'fakepath',
+      'fakepath2',
+      '-U',
+      config.user,
+      '-p',
+      config.password,
+      '../../tests/dummy.csv',
+      config.database,
+      'test',
+      '-silent',
+    ];
+    //intentionally loading data with table mismatch
+    await etlPostgres();
+    const errorFileExists = fs.existsSync('test_errorLines.csv');
+    expect(errorFileExists).toBe(true);
+    if (errorFileExists) {
+      console.log('cleaning up intentionally created error file');
+      fs.rmSync('./test_errorLines.csv');
+    }
+  });
 });

@@ -23,6 +23,7 @@ overerror   overwrites the error output file, if it exists
 U        username to connect to postgres (not stored)
 p        password to connect to postgres (not stored)
 abort    abort on errors
+silent   don't log normal progress to the console
 `;
 
 module.exports = async function main() {
@@ -55,7 +56,7 @@ module.exports = async function main() {
       })
       .filter((field) => field);
     fieldNames = format('%s', mappedFields);
-    console.log('writing to fields:', fieldNames);
+    CLI.log(args.silent, 'writing to fields:', fieldNames);
   }
 
   function parseLine(line) {
@@ -119,7 +120,7 @@ module.exports = async function main() {
   // ----------~~~~~~~~~~========== Process command line arguments ==========~~~~~~~~~~----------
   const args = parseArgs(
     ['filePath', 'database', 'table'],
-    ['overerror', 'abort'],
+    ['overerror', 'abort', 'silent'],
     { end: 0, progress: 0, batch: 500, map: null, U: null, p: null },
     docs
   );
@@ -159,17 +160,17 @@ module.exports = async function main() {
 
   // ----------~~~~~~~~~~========== Command line interface ==========~~~~~~~~~~----------
 
-  if (!args.U) args.U = await CLI('Postgres username: ');
-  if (!args.p) args.p = await CLI('Postgres password: ', true);
+  if (!args.U) args.U = await CLI.prompt('Postgres username: ');
+  if (!args.p) args.p = await CLI.prompt('Postgres password: ', true);
   if (!args.database) args.database = await CLI('Postgres database name: ');
-  if (!args.table) args.table = await CLI('table to import to: ');
+  if (!args.table) args.table = await CLI.prompt('table to import to: ');
   // ----------~~~~~~~~~~========== Connect to database ==========~~~~~~~~~~----------
 
   client = await postgres(args.database, args.U, args.p);
 
   // ----------~~~~~~~~~~========== Begin reading and importing ==========~~~~~~~~~~----------
 
-  console.log(`importing from ${args.filePath} to table ${args.table}`);
+  CLI.log( args.silent, `importing from ${args.filePath} to table ${args.table}`);
   const fileStream = fs.createReadStream(args.filePath);
   const rl = readline.createInterface({
     input: fileStream,
@@ -207,7 +208,8 @@ module.exports = async function main() {
 
   // ----------~~~~~~~~~~========== display statistics ==========~~~~~~~~~~----------
 
-  console.log(
+  CLI.log(
+    args.silent,
     `
     write complete after ${(new Date() - startTime) / 1000} s
     lines written successfully: ${writtenLines}
@@ -217,6 +219,6 @@ module.exports = async function main() {
   try {
     await client.end();
   } catch (err) {
-    console.log('database did not disconnect gracefully');
+    CLI.log(args.silent, 'database did not disconnect gracefully');
   }
 };
