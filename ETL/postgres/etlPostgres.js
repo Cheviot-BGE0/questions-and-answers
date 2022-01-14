@@ -62,15 +62,15 @@ module.exports = async function main() {
     const splitLine = line
       .split(/,+(?=(?:(?:[^"]*"){2})*[^"]*$)/g)
       .filter((entry, i) => columnMask[i])
-      .map(entry => {
+      .map((entry) => {
         //trim quotes from strings
         entry.trim();
         if (entry.startsWith('"') && entry.endsWith('"')) {
           entry = entry.slice(1, entry.length - 1);
         }
         return entry;
-      })
-    return splitLine
+      });
+    return splitLine;
   }
 
   async function insertBatch() {
@@ -80,10 +80,13 @@ module.exports = async function main() {
       await client.query(query);
       writtenLines += batch.length;
     } catch (err) {
+      //current batch failed to write
       if (args.abort) {
+        //if the abort flag is set, crash with error
         throw err;
       }
       if (errorLines === 0) {
+        //open up a new error file
         await new Promise((resolve, reject) => {
           fs.writeFile(errorFileName, inputFieldNames, (err) => {
             if (err) return reject(err);
@@ -91,15 +94,26 @@ module.exports = async function main() {
           });
         });
       }
-      errorLines += batch.length;
-      //TODO: attempt to load each item in the block individually, and write just the lines that error from that attempt to the csv
-      await new Promise((resolve, reject) => {
-        fs.appendFile(errorFileName, `\n${batch.join('\n')}`, (err) => {
-          if (err) return reject(err);
-          resolve();
-        });
-      });
+      //attempt to write the batch one at a time
+      for (const line of batch) {
+        const data = parseLine(line);
+        const query = format(`insert into ${args.table} (${fieldNames}) values (%L)`, data);
+        try {
+          await client.query(query);
+          writtenLines++;
+        } catch (err) {
+          //any individual lines that fail get written to an error CSV
+          errorLines++;
+          await new Promise((resolve, reject) => {
+            fs.appendFile(errorFileName, `\n${line}`, (err) => {
+              if (err) return reject(err);
+              resolve();
+            });
+          });
+        }
+      }
     }
+    batch = [];
   }
 
   // ----------~~~~~~~~~~========== Process command line arguments ==========~~~~~~~~~~----------
@@ -168,6 +182,7 @@ module.exports = async function main() {
   for await (const line of rl) {
     lineNum++;
     if (lineNum && lineNum % 500 === 0) {
+      //TODO: get filesize, compare to byte count, make an actual progress bar (or at least a percentage readout)
       process.stdout.clearLine();
       process.stdout.cursorTo(0);
       process.stdout.write(`current line: ${lineNum}, errors: ${errorLines}`);
@@ -204,4 +219,4 @@ module.exports = async function main() {
   } catch (err) {
     console.log('database did not disconnect gracefully');
   }
-}
+};
