@@ -34,14 +34,17 @@ module.exports.log = function (silent, ...log) {
   }
 };
 
+const loadingSteps = [' ', '.', '*', '#'];
+
 module.exports.progress = function (silent, fileSize, bytesRead, lineNum, errorLines) {
   if (!silent) {
     const progressScale = 20;
     const progress = (bytesRead / fileSize) * progressScale;
     let loadingBar = '';
     for (let i = 1; i < progressScale; i++) {
-      if (i < progress) loadingBar += '#';
-      else loadingBar += '_';
+      if (i > Math.ceil(progress)) loadingBar += loadingSteps[0];
+      else if (i < progress) loadingBar += loadingSteps[loadingSteps.length - 1];
+      else loadingBar += loadingSteps[Math.floor((progress % 1) * (loadingSteps.length - 1)) + 1]
     }
     process.stdout.clearLine();
     process.stdout.cursorTo(0);
