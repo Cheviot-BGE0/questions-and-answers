@@ -2,7 +2,7 @@ const originalArgv = process.argv;
 const config = require('./config.js');
 const fs = require('fs');
 const prepDB = require('./prepDB.js');
-const etlPostgres = require('../ETL/postgres/etlPostgres.js');
+const etlPostgres = require('../../ETL/postgres/etlPostgres.js');
 
 describe('Postgres ETL', () => {
   let client;
@@ -39,7 +39,7 @@ describe('Postgres ETL', () => {
       config.user,
       '-p',
       config.password,
-      'tests/dummy.csv',
+      'spec/ETL/dummy.csv',
       config.database,
       'test',
       '-map',
@@ -77,7 +77,7 @@ describe('Postgres ETL', () => {
       config.user,
       '-p',
       config.password,
-      'tests/dummy.csv',
+      'spec/ETL/dummy.csv',
       config.database,
       'test',
       '-silent',
