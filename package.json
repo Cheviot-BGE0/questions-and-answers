@@ -4,10 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node server",
     "postinstall": "chmod +x setup-postgres.sh",
     "test": "jest",
     "import-postgres": "node ETL/postgres someArg otherArg",
-    "setup-postgres": "./setup-postgres.sh"
+    "setup-postgres": "./setup-postgres.sh",
+    "start-dev": "nodemon server"
   },
   "repository": {
     "type": "git",
@@ -20,6 +22,7 @@
   },
   "homepage": "https://github.com/Cheviot-BGE0/questions-and-answers#readme",
   "dependencies": {
+    "express": "^4.17.2",
     "mongoose": "^6.1.6",
     "pg": "^8.7.1",
     "pg-format": "^1.0.4"
@@ -27,7 +30,8 @@
   "devDependencies": {
     "eslint": "^8.6.0",
     "eslint-plugin-jest": "^25.3.4",
-    "jest": "^27.4.7"
+    "jest": "^27.4.7",
+    "nodemon": "^2.0.15"
   },
   "jest": {
     "verbose": true
