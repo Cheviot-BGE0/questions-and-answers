@@ -1,4 +1,11 @@
-read -p "Please enter path to folder conaining CSV data: " CSV
+while read -e -p "Please enter path to folder conaining CSV data: " CSV; do
+  if [ -e "${CSV}/questions.csv" ] && [ -e "${CSV}/answers.csv" ] && [ -e "${CSV}/answers_photos.csv" ]; then
+    break
+  else
+    echo 'Unable to find one or more of: questions.csv, answers.csv, answers_photos.csv. Please try a different folder!'
+  fi
+done
+
 
 read -p "Name of the Postgres database: " database
 
