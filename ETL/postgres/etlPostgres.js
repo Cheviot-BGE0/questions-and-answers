@@ -187,11 +187,10 @@ module.exports = async function main() {
     lineNum++;
     bytesRead += line.length;
     if (lineNum && lineNum % 500 === 0) {
-      //TODO: get filesize, compare to byte count, make an actual progress bar (or at least a percentage readout)
       const progressScale = 20;
       const progress = (bytesRead / fileSize) * progressScale;
       let loadingBar = '';
-      for (let i = 1; i <= progressScale; i++) {
+      for (let i = 1; i < progressScale; i++) {
         if (i < progress) loadingBar += '#';
         else loadingBar += '_';
       }
