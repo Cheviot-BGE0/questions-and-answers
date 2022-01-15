@@ -34,10 +34,17 @@ module.exports.log = function (silent, ...log) {
   }
 };
 
-module.exports.progress = function (silent, line) {
+module.exports.progress = function (silent, fileSize, bytesRead, lineNum, errorLines) {
   if (!silent) {
+    const progressScale = 20;
+    const progress = (bytesRead / fileSize) * progressScale;
+    let loadingBar = '';
+    for (let i = 1; i < progressScale; i++) {
+      if (i < progress) loadingBar += '#';
+      else loadingBar += '_';
+    }
     process.stdout.clearLine();
     process.stdout.cursorTo(0);
-    process.stdout.write(line);
+    process.stdout.write(`progress: /${loadingBar}/ line number ${lineNum}, errors: ${errorLines}`);
   }
 };

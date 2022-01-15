@@ -186,18 +186,8 @@ module.exports = async function main() {
   for await (const line of rl) {
     lineNum++;
     bytesRead += line.length;
-    if (lineNum && lineNum % 500 === 0) {
-      const progressScale = 20;
-      const progress = (bytesRead / fileSize) * progressScale;
-      let loadingBar = '';
-      for (let i = 1; i < progressScale; i++) {
-        if (i < progress) loadingBar += '#';
-        else loadingBar += '_';
-      }
-      CLI.progress(
-        args.silent,
-        `progress: /${loadingBar}/ line number ${lineNum}, errors: ${errorLines}`
-      );
+    if (lineNum && lineNum % 1000 === 0) {
+      CLI.progress(args.silent, fileSize, bytesRead, lineNum, errorLines);
     }
     if (lineNum === 0) {
       parseHeaders(line);
@@ -215,6 +205,7 @@ module.exports = async function main() {
   //push the remaining values
   if (batch.length) {
     await insertBatch(true);
+    CLI.progress(args.silent, fileSize, bytesRead, lineNum, errorLines)
   }
 
   // ----------~~~~~~~~~~========== display statistics ==========~~~~~~~~~~----------
