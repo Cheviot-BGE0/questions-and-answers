@@ -58,7 +58,7 @@ module.exports = async function main() {
       })
       .filter((field) => field);
     fieldNames = format('%s', mappedFields);
-    CLI.log(args.silent, 'writing to fields:', fieldNames);
+    CLI.log(args.silent, `writing to fields: ${fieldNames}\n`);
   }
 
   function parseLine(line) {
@@ -172,7 +172,7 @@ module.exports = async function main() {
 
   // ----------~~~~~~~~~~========== Begin reading and importing ==========~~~~~~~~~~----------
 
-  CLI.log(args.silent, `importing from ${args.filePath} to table ${args.table}`);
+  CLI.log(args.silent, `\nimporting from ${args.filePath} to table ${args.table}`);
   fileSize = fs.statSync(args.filePath).size;
   const fileStream = fs.createReadStream(args.filePath);
   const rl = readline.createInterface({
@@ -216,6 +216,7 @@ module.exports = async function main() {
     write complete after ${(new Date() - startTime) / 1000} s
     lines written successfully: ${writtenLines}
     lines with errors:          ${errorLines}
+
     `
   );
 
