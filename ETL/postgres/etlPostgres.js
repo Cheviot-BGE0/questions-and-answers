@@ -37,6 +37,8 @@ module.exports = async function main() {
   let writtenLines = 0;
   let batch = [];
   let client;
+  let fileSize;
+  let bytesRead = 0;
 
   // ----------~~~~~~~~~~========== Helper functions ==========~~~~~~~~~~----------
   function parseHeaders(line) {
@@ -156,7 +158,7 @@ module.exports = async function main() {
     });
   }
 
-  args.filePath = path.join(__dirname, args.filePath);
+  args.filePath = path.join(__dirname, '../../', args.filePath);
 
   // ----------~~~~~~~~~~========== Command line interface ==========~~~~~~~~~~----------
 
@@ -171,6 +173,7 @@ module.exports = async function main() {
   // ----------~~~~~~~~~~========== Begin reading and importing ==========~~~~~~~~~~----------
 
   CLI.log(args.silent, `importing from ${args.filePath} to table ${args.table}`);
+  fileSize = fs.statSync(args.filePath).size;
   const fileStream = fs.createReadStream(args.filePath);
   const rl = readline.createInterface({
     input: fileStream,
@@ -182,9 +185,20 @@ module.exports = async function main() {
   //read the file
   for await (const line of rl) {
     lineNum++;
+    bytesRead += line.length;
     if (lineNum && lineNum % 500 === 0) {
       //TODO: get filesize, compare to byte count, make an actual progress bar (or at least a percentage readout)
-      CLI.progress(args.silent, `current line: ${lineNum}, errors: ${errorLines}`);
+      const progressScale = 20;
+      const progress = (bytesRead / fileSize) * progressScale;
+      let loadingBar = '';
+      for (let i = 1; i <= progressScale; i++) {
+        if (i < progress) loadingBar += '#';
+        else loadingBar += '_';
+      }
+      CLI.progress(
+        args.silent,
+        `progress: /${loadingBar}/ line number ${lineNum}, errors: ${errorLines}`
+      );
     }
     if (lineNum === 0) {
       parseHeaders(line);
