@@ -19,4 +19,4 @@ where a.id = cte_photos.answer_id;
 create sequence if not exists photo_id_seq;
 select setval('photo_id_seq', (select max(id) from answers_photos) + 1);
 
--- drop table answers_photos;
+drop table answers_photos;

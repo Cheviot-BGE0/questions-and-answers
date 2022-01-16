@@ -28,4 +28,6 @@ node ETL/postgres -U $username -p $password "${CSV}/questions.csv" $database que
 node ETL/postgres -U $username -p $password "${CSV}/answers.csv" $database answers
 node ETL/postgres -U $username -p $password "${CSV}/answers_photos.csv" $database answers_photos
 
+PGPASSWORD=$password psql -U $username $database -f ETL/postgres/populatePhotos.sql
+
 echo "ETL complete! If there were any errors while loading, a CSV file for the corresponding database has been created containing the errored block."

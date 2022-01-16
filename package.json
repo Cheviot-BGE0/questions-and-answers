@@ -8,7 +8,7 @@
     "postinstall": "chmod +x setup-postgres.sh",
     "test": "jest",
     "import-postgres": "node ETL/postgres someArg otherArg",
-    "setup-postgres": "./setup-postgres.sh",
+    "setup-postgres": "./ETL/postgres/setup.sh",
     "start-dev": "nodemon server"
   },
   "repository": {

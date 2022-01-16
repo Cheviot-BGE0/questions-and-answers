@@ -30,11 +30,8 @@ select id, product_id, date_written, body, asker_name, helpful, reported, jsonb_
 `;
 //TODO: exclude reported results
 //TODO: figure out how to make query return empty array for objects with no contents (answers, and answers_photos)
-//TODO: join questions should probably be an outer join, to preserve questions with no answers (unless the fact that missing answers returns an array with one object with null on all values, makes an inner join a de facto outer join)
-
-//TODO: maybe just store photos as a json object? After initial creation there's no editing of the photos array, so I could lose that whole table
-
 //alternately, just trim empty objects after the query
+//TODO: join questions should probably be an outer join, to preserve questions with no answers (unless the fact that missing answers returns an array with one object with null on all values, makes an inner join a de facto outer join)
 
 //parameters
 async function getQuestions(product_id, { page, count }) {
