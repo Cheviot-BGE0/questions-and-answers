@@ -8,6 +8,9 @@ app.use(express.json());
 
 app.get('/', async function (req, res) {
   const {product_id, page, count} = req.query
+  if (product_id === undefined) {
+    return res.status(400).send('missing product ID')
+  }
   try {
     const data = await db.getQuestions(product_id, {page, count})
     res.send(data);

@@ -16,4 +16,5 @@ create table answers(
       on delete cascade
 );
 
+create index answers_question_id_index on answers (question_id);
 -- psql -U postgres questionsAndAnswers -f ETL/postgres/schemaAnswers.sql

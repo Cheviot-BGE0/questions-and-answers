@@ -11,4 +11,5 @@ create table answers_photos(
       on delete cascade
 );
 
+create index answers_photos_answer_id_index on answers_photos (answer_id);
 -- psql -U postgres questionsAndAnswers -f ETL/postgres/schemaAnswersPhotos.sql
