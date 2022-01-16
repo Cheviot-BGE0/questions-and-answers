@@ -6,88 +6,27 @@ function init() {
   return client.connect();
 }
 
-const questionsQueryOld = `
-select jsonb_agg(js_object) results
-from (
-  select
-    jsonb_build_object (
-      'id', id,
-      'product_id', product_id,
-      'date_written', date_written,
-      'body', body,
-      'asker_name', asker_name,
-      'helpful', helpful,
-      'reported', reported,
-      'answers', jsonb_agg(answers_ob)
-    ) js_object
-  from (
-    select
-      q.*,
-      jsonb_build_object (
-        'id', a.id,
-        'question_id', a.question_id,
-        'body', a.body,
-        'date_written', a.date_written,
-        'answerer_name', answerer_name,
-        'answerer_email', answerer_email,
-        'helpful', a.helpful,
-        'reported', a.reported,
-        'photos', jsonb_agg(photos_ob)
-      ) answers_ob
-      from (
-        select
-          a.*,
-          jsonb_build_object (
-            'id', p.id,
-            'url', p.url
-          ) photos_ob
-             from answers a
-          left join answers_photos p on a.id = p.answer_id
-      ) a
-      join questions q on q.id = a.question_id
-      where q.product_id = $1
-      group by q.id, q.product_id, q.date_written, q.body, q.asker_name, q.helpful, q.reported, a.id, a.question_id, a.body, a.date_written, a.answerer_name, a.answerer_email, a.helpful, a.reported
-      order by q.id, a.id
-    ) temp
-    group by id, product_id, date_written, body, asker_name, helpful, reported
-  ) temp
-`;
-
 const questionsQuery = `
-select jsonb_agg(js_object) results
-from (
+select id, product_id, date_written, body, asker_name, helpful, reported, jsonb_agg(answers_ob) answers from (
   select
+    q.*,
     jsonb_build_object (
-      'id', id,
-      'product_id', product_id,
-      'date_written', date_written,
-      'body', body,
-      'asker_name', asker_name,
-      'helpful', helpful,
-      'reported', reported,
-      'answers', jsonb_agg(answers_ob)
-    ) js_object
-  from (
-    select
-      q.*,
-      jsonb_build_object (
-        'id', a.id,
-        'question_id', a.question_id,
-        'body', a.body,
-        'date_written', a.date_written,
-        'answerer_name', answerer_name,
-        'answerer_email', answerer_email,
-        'helpful', a.helpful,
-        'reported', a.reported,
-        'photos', photos
-      ) answers_ob
-      from questions q
-      join answers a on q.id = a.question_id
-      where q.product_id = $1
-      order by q.id, a.id
-    ) temp
-    group by id, product_id, date_written, body, asker_name, helpful, reported
+      'id', a.id,
+      'question_id', a.question_id,
+      'body', a.body,
+      'date_written', a.date_written,
+      'answerer_name', answerer_name,
+      'answerer_email', answerer_email,
+      'helpful', a.helpful,
+      'reported', a.reported,
+      'photos', photos
+    ) answers_ob
+    from questions q
+    join answers a on q.id = a.question_id
+    where q.product_id = $1
+    order by q.id, a.id
   ) temp
+  group by id, product_id, date_written, body, asker_email, asker_name, helpful, reported
 `;
 //TODO: exclude reported results
 //TODO: figure out how to make query return empty array for objects with no contents (answers, and answers_photos)
@@ -99,54 +38,27 @@ from (
 
 //parameters
 async function getQuestions(product_id, { page, count }) {
+  //TODO: selectable order, page, count
   const questions = await client.query(questionsQuery, [product_id]);
 
   const response = {
     product_id,
-    results: questions.rows[0].results,
+    results: questions.rows,
   };
   return response;
 }
 
-const answersQueryOld = `
-select jsonb_agg(js_object) results
-from (
-  select
-      jsonb_build_object (
-        'id', id,
-        'question_id', question_id,
-        'body', body,
-        'date_written', date_written,
-        'answerer_name', answerer_name,
-        'answerer_email', answerer_email,
-        'helpful', helpful,
-        'reported', reported,
-        'photos', photos
-      ) js_object
-      from (
-        select
-          a.*,
-          jsonb_build_object(
-            'id', p.id,
-            'url', p.url
-          ) photos_ob
-          from answers a
-          left join answers_photos p on a.id = p.answer_id
-          where a.question_id = $1
-      ) temp
-  group by id, question_id, body, date_written, answerer_name, answerer_email, helpful, reported
-  ) temp
-`;
 
-const answersQuery = 'select * from answers where question_id = $1';
+const answersQuery = 'select * from answers where question_id = $1 order by id';
 
 //query, parameters
 async function getAnswers(question_id, { page, count }) {
+  //TODO: selectable order, page, count
   const answers = await client.query(answersQuery, [question_id]);
 
   const response = {
     question_id,
-    results: answers.rows[0].results,
+    results: answers.rows,
   };
   return response;
 }
