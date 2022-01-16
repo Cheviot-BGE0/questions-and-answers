@@ -7,7 +7,7 @@ function init() {
 }
 
 const questionsQueryOld = `
-select jsonb_agg(js_object) result
+select jsonb_agg(js_object) results
 from (
   select
     jsonb_build_object (
@@ -54,7 +54,7 @@ from (
 `;
 
 const questionsQuery = `
-select jsonb_agg(js_object) result
+select jsonb_agg(js_object) results
 from (
   select
     jsonb_build_object (
@@ -103,13 +103,13 @@ async function getQuestions(product_id, { page, count }) {
 
   const response = {
     product_id,
-    results: questions.rows[0].result,
+    results: questions.rows[0].results,
   };
   return response;
 }
 
 const answersQueryOld = `
-select jsonb_agg(js_object) result
+select jsonb_agg(js_object) results
 from (
   select
       jsonb_build_object (
@@ -146,7 +146,7 @@ async function getAnswers(question_id, { page, count }) {
 
   const response = {
     question_id,
-    results: answers.rows[0].result,
+    results: answers.rows[0].results,
   };
   return response;
 }
@@ -167,6 +167,12 @@ const addAnswerString = `
 `;
 
 async function addAnswer(question_id, body, name, email, photos) {
+  //TODO: test if await map works
+  //TODO: maybe we can get the select nextval down to one query for an arbitrary number of photos
+  photos = await photos.map(async function (photo) {
+    const nextId = await client.query(`select nextval('photo_id_seq')`);
+    return { url: photo.url, id: nextId };
+  });
   await client.query(addAnswerString, [
     question_id,
     body,

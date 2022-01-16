@@ -15,3 +15,8 @@ update answers a
 set photos = cte_photos.result
 from cte_photos
 where a.id = cte_photos.answer_id;
+
+create sequence if not exists photo_id_seq;
+select setval('photo_id_seq', (select max(id) from answers_photos) + 1);
+
+-- drop table answers_photos;

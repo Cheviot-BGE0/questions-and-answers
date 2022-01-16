@@ -11,4 +11,6 @@ create table questions(
   reported int,
   primary key(id)
 );
+
+create index questions_product_id_index on questions (product_id);
 -- psql -U postgres questionsAndAnswers -f ETL/postgres/schemaQuestions.sql
