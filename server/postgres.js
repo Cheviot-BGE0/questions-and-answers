@@ -6,8 +6,7 @@ function init() {
   return client.connect();
 }
 
-const questionsQuery =
-  `
+const questionsQueryOld = `
 select jsonb_agg(js_object) result
 from (
   select
@@ -53,6 +52,44 @@ from (
     group by id, product_id, date_written, body, asker_name, helpful, reported
   ) temp
 `;
+
+const questionsQuery = `
+select jsonb_agg(js_object) result
+from (
+  select
+    jsonb_build_object (
+      'id', id,
+      'product_id', product_id,
+      'date_written', date_written,
+      'body', body,
+      'asker_name', asker_name,
+      'helpful', helpful,
+      'reported', reported,
+      'answers', jsonb_agg(answers_ob)
+    ) js_object
+  from (
+    select
+      q.*,
+      jsonb_build_object (
+        'id', a.id,
+        'question_id', a.question_id,
+        'body', a.body,
+        'date_written', a.date_written,
+        'answerer_name', answerer_name,
+        'answerer_email', answerer_email,
+        'helpful', a.helpful,
+        'reported', a.reported,
+        'photos', photos
+      ) answers_ob
+      from questions q
+      join answers a on q.id = a.question_id
+      where q.product_id = $1
+      order by q.id, a.id
+    ) temp
+    group by id, product_id, date_written, body, asker_name, helpful, reported
+  ) temp
+`;
+//TODO: exclude reported results
 //TODO: figure out how to make query return empty array for objects with no contents (answers, and answers_photos)
 //TODO: join questions should probably be an outer join, to preserve questions with no answers (unless the fact that missing answers returns an array with one object with null on all values, makes an inner join a de facto outer join)
 
@@ -71,7 +108,7 @@ async function getQuestions(product_id, { page, count }) {
   return response;
 }
 
-const answersQuery = `
+const answersQueryOld = `
 select jsonb_agg(js_object) result
 from (
   select
@@ -84,7 +121,7 @@ from (
         'answerer_email', answerer_email,
         'helpful', helpful,
         'reported', reported,
-        'photos', jsonb_agg(photos_ob)
+        'photos', photos
       ) js_object
       from (
         select
@@ -101,6 +138,8 @@ from (
   ) temp
 `;
 
+const answersQuery = 'select * from answers where question_id = $1';
+
 //query, parameters
 async function getAnswers(question_id, { page, count }) {
   const answers = await client.query(answersQuery, [question_id]);
@@ -112,9 +151,31 @@ async function getAnswers(question_id, { page, count }) {
   return response;
 }
 
-async function addQuestion(body, name, email, product_id) {}
+const addQuestionString = `
+  insert into questions
+    (product_id, date_written, body, asker_name, asker_email, helpful, reported)
+    values ($1, $2, $3, $4, $5, 0, 0)`;
 
-async function addAnswer(question_id, body, name, email, photos) {}
+async function addQuestion(body, name, email, product_id) {
+  await client.query(addQuestionString, [product_id, new Date(), body, name, email]);
+}
+
+const addAnswerString = `
+  insert into answers
+    (question_id, body, date_written, answerer_name, answerer_email, helpful, reported, photos)
+    values ($1, $2, $3, $4, $5, 0, 0, $6)
+`;
+
+async function addAnswer(question_id, body, name, email, photos) {
+  await client.query(addAnswerString, [
+    question_id,
+    body,
+    new Date(),
+    name,
+    email,
+    JSON.stringify(photos),
+  ]);
+}
 
 async function markQuestionHelpful(question_id) {}
 
