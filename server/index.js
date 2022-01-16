@@ -9,8 +9,8 @@ app.use(express.json());
 app.get('/:question_id/answers', async function (req, res) {
   const { page, count } = req.query;
   const { question_id } = req.params;
-  if (question_id === undefined || !Number.isInteger(question_id)) {
-    return res.status(400).send('invalid question id')
+  if (question_id === undefined || !Number.isInteger(parseInt(question_id))) {
+    return res.status(400).send(`invalid question id ${question_id}`)
   }
   try {
     const data = await db.getAnswers(question_id, { page, count })
