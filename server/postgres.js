@@ -37,7 +37,7 @@ select id, product_id, date_written, body, asker_name, helpful, reported, jsonb_
 async function getQuestions(product_id, { page, count }) {
   //TODO: selectable order, page, count
   const questions = await client.query(questionsQuery, [product_id]);
-
+  //TODO: photos is null when no photos. Return empty array instead? Rebuild data with empty array when no photos?
   const response = {
     product_id,
     results: questions.rows,

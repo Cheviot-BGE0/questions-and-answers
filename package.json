@@ -5,9 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node server",
-    "postinstall": "chmod +x setup-postgres.sh",
+    "postinstall": "chmod +x ETL/postgres/setup.sh",
     "test": "jest",
-    "import-postgres": "node ETL/postgres someArg otherArg",
     "setup-postgres": "./ETL/postgres/setup.sh",
     "start-dev": "nodemon server"
   },
