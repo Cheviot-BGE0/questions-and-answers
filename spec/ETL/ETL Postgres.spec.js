@@ -1,13 +1,18 @@
 const originalArgv = process.argv;
-const config = require('./config.js');
+const config = require('../../config.js');
 const fs = require('fs');
-const prepDB = require('./prepDB.js');
 const etlPostgres = require('../../ETL/postgres/etlPostgres.js');
+const { Client } = require('pg');
 
 describe('Postgres ETL', () => {
   let client;
   beforeAll(async function () {
-    client = await prepDB();
+    client = new Client({
+      database: config.database,
+      user: config.user,
+      password: config.password,
+    });
+    await client.connect();
   });
   beforeEach(async function () {
     await client.query('drop table if exists test');

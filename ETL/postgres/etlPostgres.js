@@ -1,36 +1,33 @@
-const parseArgs = require('../parseArgs.js');
+const parseArgs = require('../../utils/parseArgs.js');
 const fs = require('fs');
 const readline = require('readline');
 const postgres = require('./loadPostgres.js');
 const format = require('pg-format');
-const CLI = require('../CLI.js');
+const CLI = require('../../utils/CLI.js');
 const path = require('path');
+const config = require('../../config.js');
 
 const docs = `
 Loads data from a proved CSV file into a postgres db.
 
-Syntax: node ETL/postgres "path/to/csv" database_name table_name [-h|batch|end|auto|map|overerror|U|p|abort]
+Syntax: node ETL/postgres "path/to/csv" database_name table_name [-h|batch|end|map|overerror|U|p|abort]
 options:
-batch #     Number of entries to enter as a batch
 h           displays this help text
+batch #     Number of entries to load per batch
 end #       ends the csv file read after # lines
-auto 'val'  sets the name of the column that is auto-incremented (leave blank for none)
 map 'name=newName,name2=newName2...'
             maps names from the csv file into different columns in the table
-            use csvName=columnName format, separate multipleentries with commas
-            use __skip__ to skip a column when importing
-overerror   overwrites the error output file, if it exists
-U        username to connect to postgres (not stored)
-p        password to connect to postgres (not stored)
-abort    abort on errors
-silent   don't log normal progress to the console
+            use csvName=columnName format, separate multiple entries with commas
+            use __skip__ to ignore a column when importing
+overerror   automatically overwrites the error output file, if it exists
+abort       abort on errors
+silent      don't print progress to console
 `;
 
 module.exports = async function main() {
-  // ----------~~~~~~~~~~========== Values to persist between functions and read loop iterations ==========~~~~~~~~~~----------
+  // ----------~~~~~~~~~~========== Scope variables ==========~~~~~~~~~~----------
   const startTime = new Date();
   const columnMask = [];
-
   let fieldNames;
   let inputFieldNames;
   let errorLines = 0;
@@ -119,7 +116,7 @@ module.exports = async function main() {
     batch = [];
   }
 
-  // ----------~~~~~~~~~~========== Process command line arguments ==========~~~~~~~~~~----------
+  // ----------~~~~~~~~~~========== Process arguments ==========~~~~~~~~~~----------
   const args = parseArgs(
     ['filePath', 'database', 'table'],
     ['overerror', 'abort', 'silent'],
@@ -157,21 +154,14 @@ module.exports = async function main() {
       });
     });
   }
-
   args.filePath = path.join(__dirname, '../../', args.filePath);
 
-  // ----------~~~~~~~~~~========== Command line interface ==========~~~~~~~~~~----------
-
-  if (!args.U) args.U = await CLI.prompt('Postgres username: ');
-  if (!args.p) args.p = await CLI.prompt('Postgres password: ', true);
-  if (!args.database) args.database = await CLI('Postgres database name: ');
   if (!args.table) args.table = await CLI.prompt('table to import to: ');
-  // ----------~~~~~~~~~~========== Connect to database ==========~~~~~~~~~~----------
 
-  client = await postgres(args.database, args.U, args.p);
+  // ----------~~~~~~~~~~========== Connect to database ==========~~~~~~~~~~----------
+  client = await postgres(config.database, config.user, config.password);
 
   // ----------~~~~~~~~~~========== Begin reading and importing ==========~~~~~~~~~~----------
-
   CLI.log(args.silent, `\nimporting from ${args.filePath} to table ${args.table}`);
   fileSize = fs.statSync(args.filePath).size;
   const fileStream = fs.createReadStream(args.filePath);
@@ -208,8 +198,7 @@ module.exports = async function main() {
     CLI.progress(args.silent, fileSize, bytesRead, lineNum, errorLines)
   }
 
-  // ----------~~~~~~~~~~========== display statistics ==========~~~~~~~~~~----------
-
+  // ----------~~~~~~~~~~========== final statistics ==========~~~~~~~~~~----------
   CLI.log(
     args.silent,
     `
