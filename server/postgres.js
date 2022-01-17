@@ -22,8 +22,8 @@ select id, product_id, date_written, body, asker_name, helpful, reported, jsonb_
       'photos', photos
     ) answers_ob
     from questions q
-    join answers a on q.id = a.question_id
-    where q.product_id = $1
+    left join answers a on q.id = a.question_id
+    where q.product_id = $1 and q.reported = 0 and a.reported = 0
     order by q.id, a.id
   ) temp
   group by id, product_id, date_written, body, asker_email, asker_name, helpful, reported
@@ -46,7 +46,7 @@ async function getQuestions(product_id, { page, count }) {
 }
 
 
-const answersQuery = 'select * from answers where question_id = $1 order by id';
+const answersQuery = 'select * from answers where question_id = $1 and reported = 0 order by id';
 
 //query, parameters
 async function getAnswers(question_id, { page, count }) {
@@ -92,13 +92,20 @@ async function addAnswer(question_id, body, name, email, photos) {
   ]);
 }
 
-async function markQuestionHelpful(question_id) {}
+async function markQuestionHelpful(question_id) {
+  await client.query('UPDATE questions SET helpful = qNew.helpful + 1 from (select helpful from questions where id = $1) qNew where id = $1', [question_id])
+}
 
-async function reportQuestion(question_id) {}
+async function reportQuestion(question_id) {
+  await client.query('UPDATE questions SET reported = 1 where id = $1', [question_id])
+}
 
-async function markAnswerHelpful(answer_id) {}
+async function markAnswerHelpful(answer_id) {
+  await client.query('UPDATE answers SET helpful = aNew.helpful + 1 from (select helpful from answers where id = $1) aNew where id = $1', [answer_id])}
 
-async function reportAnswer(answer_id) {}
+async function reportAnswer(answer_id) {
+  await client.query('UPDATE answers SET reported = 1 where id = $1', [answer_id])
+}
 
 module.exports = {
   init,
