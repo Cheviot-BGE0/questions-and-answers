@@ -1,3 +1,6 @@
+
+startTime=$(date +%s)
+
 if [ -e "config.js" ]; then
   while IFS="= ;'\"\`" read -ra line; do
     case ${line[0]} in
@@ -40,6 +43,7 @@ read -p "Are you sure you want to proceed? " yn
 if [[ ! $yn =~ ^[Yy]$ ]]; then
   exit 1
 fi
+startTime=$(date +%s)
 
 PGPASSWORD=$password psql -U $user $database -f ETL/postgres/schemaQuestions.sql
 PGPASSWORD=$password psql -U $user $database -f ETL/postgres/schemaAnswers.sql
@@ -53,4 +57,6 @@ echo "Migrating photos into answers"
 
 PGPASSWORD=$password psql -U $user $database -f ETL/postgres/populatePhotos.sql
 
-echo "ETL complete! If there were any errors while loading, a CSV file for the corresponding database has been created containing the errored lines."
+diff=$(( $(date +%s) - $startTime ))
+
+echo "ETL complete in ${diff} seconds! If there were any errors while loading, a CSV file for the corresponding database has been created containing the errored lines."

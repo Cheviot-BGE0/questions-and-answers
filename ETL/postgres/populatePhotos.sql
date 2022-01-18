@@ -1,5 +1,5 @@
 with cte_photos as (
-  select answer_id, coalesce(jsonb_agg(js_object), '[]'::jsonb), result
+  select answer_id, jsonb_agg(js_object) result
     from (
       select
         answer_id,
