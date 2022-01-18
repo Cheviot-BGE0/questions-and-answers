@@ -1,3 +1,5 @@
+#! /bin/bash
+
 if [ ! -e "config.js" ]; then
   echo ""
   echo "Creating config file, please provide the following:"
@@ -5,7 +7,7 @@ if [ ! -e "config.js" ]; then
   read -p "Postgres user: " user
   read -p "Postgres password: " -s password
   echo ""
-  read -p "Please name the database to be used: " database
+  read -p "Database to connect to: " database
   echo "module.exports.host = '${host}';" > config.js
   echo "module.exports.database = '${database}';" >> config.js
   echo "module.exports.user = '${user}';" >> config.js

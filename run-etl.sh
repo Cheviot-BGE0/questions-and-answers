@@ -1,3 +1,4 @@
+#! /bin/bash
 
 startTime=$(date +%s)
 if [ ! -e "config.js" ]; then
