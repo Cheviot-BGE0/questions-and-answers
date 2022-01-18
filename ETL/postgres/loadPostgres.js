@@ -1,8 +1,8 @@
 const { Client } = require('pg');
 
-async function postgres(address, database, user, password) {
+async function postgres(host, database, user, password) {
   const client = new Client({
-    address,
+    host,
     user,
     database,
     password

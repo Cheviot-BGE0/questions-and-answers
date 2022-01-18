@@ -1,13 +1,9 @@
 
 startTime=$(date +%s)
 
-read -p "Please enter the address to the database" address
-read -p "Postgres user: " user
-read -p "Postgres password: " -s password
-echo ""
-read -p "Please name the database to be used: " database
+./setup.sh
 
-echo "SELECT 'CREATE DATABASE \"${database}\"' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '${database}')\gexec" | PGPASSWORD=$password psql -h $address -U $user template1
+echo "SELECT 'CREATE DATABASE \"${database}\"' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '${database}')\gexec" | PGPASSWORD=$password psql -h $host -U $user template1
 
 while read -e -p "Please enter path to folder conaining CSV data (questions.csv, answers.csv, answers_photos.csv): " CSV; do
   if [ -e "${CSV}/questions.csv" ] && [ -e "${CSV}/answers.csv" ] && [ -e "${CSV}/answers_photos.csv" ]; then
@@ -25,13 +21,13 @@ if [[ ! $yn =~ ^[Yy]$ ]]; then
 fi
 startTime=$(date +%s)
 
-PGPASSWORD=$password psql -h $address -U $user $database -f ETL/postgres/schemaQuestions.sql
-PGPASSWORD=$password psql -h $address -U $user $database -f ETL/postgres/schemaAnswers.sql
-PGPASSWORD=$password psql -h $address -U $user $database -f ETL/postgres/schemaAnswersPhotos.sql
+PGPASSWORD=$password psql -h $host -U $user $database -f ETL/postgres/schemaQuestions.sql
+PGPASSWORD=$password psql -h $host -U $user $database -f ETL/postgres/schemaAnswers.sql
+PGPASSWORD=$password psql -h $host -U $user $database -f ETL/postgres/schemaAnswersPhotos.sql
 
-node ETL/postgres "${CSV}/questions.csv" $database questions
-node ETL/postgres "${CSV}/answers.csv" $database answers
-node ETL/postgres "${CSV}/answers_photos.csv" $database answers_photos
+node ETL/postgres -abort "${CSV}/questions.csv" questions
+node ETL/postgres "${CSV}/answers.csv" answers
+node ETL/postgres "${CSV}/answers_photos.csv" answers_photos
 
 echo "Migrating photos into answers"
 
