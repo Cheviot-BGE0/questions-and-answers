@@ -1,0 +1,20 @@
+config:
+  target: "http://localhost:3000"
+  phases:
+    - duration: 10
+      arrivalRate: 1
+      name: Warm up
+    - duration: 10
+      arrivalRate: 10
+      name: A little more
+    - duration: 10
+      arrivalRate: 100
+      name: Plenty
+    - duration: 10
+      arrivalRate: 1000
+      name: A lot
+scenarios:
+  - name: "Load products"
+    flow:
+      - get:
+          url: "/questions?product_id={{ $randomNumber(900000,1000000) }}"
