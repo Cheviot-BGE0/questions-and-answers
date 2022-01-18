@@ -1,7 +1,25 @@
 
 startTime=$(date +%s)
+if [ ! -e "config.js" ]; then
+  ./setup.sh
+fi
 
-./setup.sh
+while IFS="= ;'\"\`" read -ra line; do
+  case ${line[0]} in
+    module.exports.host)
+      host=${line[2]}
+      ;;
+    module.exports.database)
+      database=${line[2]}
+      ;;
+    module.exports.user)
+      user=${line[2]}
+      ;;
+    module.exports.password)
+      password=${line[2]}
+      ;;
+  esac
+done < "config.js"
 
 echo "SELECT 'CREATE DATABASE \"${database}\"' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '${database}')\gexec" | PGPASSWORD=$password psql -h $host -U $user template1
 
@@ -31,7 +49,7 @@ node ETL/postgres "${CSV}/answers_photos.csv" answers_photos
 
 echo "Migrating photos into answers"
 
-PGPASSWORD=$password psql -U $user $database -f ETL/postgres/populatePhotos.sql
+PGPASSWORD=$password psql -h $host -U $user $database -f ETL/postgres/populatePhotos.sql
 
 diff=$(( $(date +%s) - $startTime ))
 
