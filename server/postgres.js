@@ -7,7 +7,7 @@ function init() {
 }
 
 const questionsQuery = `
-select id, product_id, date_written, body, asker_name, helpful, reported, jsonb_agg(answers_ob) answers from (
+select id, product_id, date_written, body, asker_name, helpful, reported, coalesce(jsonb_agg(answers_ob), '[]'::jsonb) answers from (
   select
     q.*,
     jsonb_build_object (
@@ -28,9 +28,8 @@ select id, product_id, date_written, body, asker_name, helpful, reported, jsonb_
   ) temp
   group by id, product_id, date_written, body, asker_email, asker_name, helpful, reported
 `;
-//TODO: exclude reported results
 //TODO: figure out how to make query return empty array for objects with no contents (answers, and answers_photos)
-//alternately, just trim empty objects after the query
+  //alternately, just trim empty objects after the query
 //TODO: join questions should probably be an outer join, to preserve questions with no answers (unless the fact that missing answers returns an array with one object with null on all values, makes an inner join a de facto outer join)
 
 //parameters
