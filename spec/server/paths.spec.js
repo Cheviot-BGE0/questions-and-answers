@@ -17,12 +17,12 @@ describe('Server Paths', () => {
   beforeAll(() => {
     paths.init(dbStub);
   });
-  describe('GET questions', async () => {});
-  describe('GET answers', async () => {});
-  describe('POST question', async () => {});
-  describe('POST answer', async () => {});
-  describe('PUT questions helpful', async () => {});
-  describe('PUT questions report', async () => {});
-  describe('PUT answers helpful', async () => {});
-  describe('PUT answers report', async () => {});
+  describe('GET questions', () => {});
+  describe('GET answers', () => {});
+  describe('POST question', () => {});
+  describe('POST answer', () => {});
+  describe('PUT questions helpful', () => {});
+  describe('PUT questions report', () => {});
+  describe('PUT answers helpful', () => {});
+  describe('PUT answers report', () => {});
 });
