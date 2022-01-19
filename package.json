@@ -7,7 +7,8 @@
     "start": "node server",
     "postinstall": "chmod +x setup.sh & ./setup.sh",
     "test": "jest",
-    "start-dev": "nodemon server"
+    "start-dev": "nodemon server",
+    "test-load": "Artillery run spec/load/getQuestions.yaml"
   },
   "repository": {
     "type": "git",
