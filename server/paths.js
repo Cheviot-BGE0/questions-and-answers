@@ -18,6 +18,7 @@ exports.getQuestions = async (req, res) => {
 };
 
 exports.getAnswers = async (req, res) => {
+  console.log(req)
   const { page, count } = req.query;
   const { question_id } = req.params;
   if (question_id === undefined || !Number.isInteger(parseInt(question_id))) {

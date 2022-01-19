@@ -28,12 +28,32 @@ describe('Server Paths', () => {
     });
     it('should fail when not provided a valid request', async () => {
       dbStub.getQuestions = jest.fn().mockReturnValueOnce(goodData);
-      await paths.getQuestions({query: {}}, resStub);
+      await paths.getQuestions({ query: {} }, resStub);
       expect(dbStub.getQuestions.mock.calls.length).toBe(0);
       expect(resStub.status.mock.calls[0][0]).toBe(400);
-    })
+    });
   });
-  describe('GET answers', () => {});
+  describe('GET answers', () => {
+    const goodReq = { query: {}, params: { question_id: 1 } };
+    it('should return with a status of 200', async () => {
+      dbStub.getAnswers = jest.fn();
+      await paths.getAnswers(goodReq, resStub);
+      expect(resStub.status.mock.calls[0][0]).toBe(200);
+      expect(resStub.send.mock.calls.length).toBe(1);
+    });
+    it('should call the DB function when provided a product ID, and return the data', async () => {
+      dbStub.getAnswers = jest.fn().mockReturnValueOnce(goodData);
+      await paths.getAnswers(goodReq, resStub);
+      expect(dbStub.getAnswers.mock.calls.length).toBe(1);
+      expect(resStub.send.mock.calls[0][0]).toBe(goodData);
+    });
+    it('should fail when not provided a valid request', async () => {
+      dbStub.getAnswers = jest.fn().mockReturnValueOnce(goodData);
+      await paths.getAnswers({ query: {}, params: {} }, resStub);
+      expect(dbStub.getAnswers.mock.calls.length).toBe(0);
+      expect(resStub.status.mock.calls[0][0]).toBe(400);
+    });
+  });
   describe('POST question', () => {});
   describe('POST answer', () => {});
   describe('PUT questions helpful', () => {});
