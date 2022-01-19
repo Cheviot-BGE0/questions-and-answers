@@ -1,7 +1,7 @@
 let db;
 exports.init = (dbInitialized) => {
   db = dbInitialized;
-}
+};
 
 exports.getQuestions = async (req, res) => {
   const { product_id, page, count } = req.query;
@@ -18,7 +18,6 @@ exports.getQuestions = async (req, res) => {
 };
 
 exports.getAnswers = async (req, res) => {
-  console.log(req)
   const { page, count } = req.query;
   const { question_id } = req.params;
   if (question_id === undefined || !Number.isInteger(parseInt(question_id))) {
