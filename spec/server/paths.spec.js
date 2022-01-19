@@ -22,7 +22,7 @@ describe('Server Paths', () => {
     goodStatus,
     goodReturn
   ) => {
-    it('should return with a status of 200', async () => {
+    it(`should return with a status of ${goodStatus}`, async () => {
       dbStub[dbCommandName] = jest.fn();
       await testCommand(goodReq, resStub);
       expect(resStub.status.mock.calls[0][0]).toBe(goodStatus);

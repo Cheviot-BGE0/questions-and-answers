@@ -5,7 +5,7 @@ exports.init = (dbInitialized) => {
 
 exports.getQuestions = async (req, res) => {
   const { product_id, page, count } = req.query;
-  if (product_id === undefined) {
+  if (product_id === undefined || !Number.isInteger(parseInt(product_id))) {
     return res.status(400).send('missing product ID');
   }
   try {
