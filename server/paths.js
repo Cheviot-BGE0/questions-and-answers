@@ -13,7 +13,6 @@ exports.getQuestions = async (req, res) => {
     res.status(200).send(data);
   } catch (err) {
     res.status(500).send('unable to retrieve questions');
-    console.error(err);
   }
 };
 
@@ -28,7 +27,6 @@ exports.getAnswers = async (req, res) => {
     res.status(200).send(data);
   } catch (err) {
     res.status(500).send('unable to retrieve answers');
-    console.error(err);
   }
 };
 
@@ -76,6 +74,5 @@ async function putDB(req, res, input_id, dbFunc, errorText) {
     res.status(204).send();
   } catch (err) {
     res.status(500).send(errorText);
-    throw err;
   }
 }
