@@ -74,7 +74,7 @@ const addAnswerString = `
     values ($1, $2, $3, $4, $5, 0, 0, $6)
 `;
 
-async function addAnswer(question_id, body, name, email, photos) {
+async function addAnswer(body, name, email, photos, question_id) {
   //TODO: test if await map works
   //TODO: maybe we can get the select nextval down to one query for an arbitrary number of photos
   photos = await photos.map(async function (photo) {
