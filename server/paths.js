@@ -10,10 +10,10 @@ exports.getQuestions = async (req, res) => {
   }
   try {
     const data = await db.getQuestions(product_id, { page, count });
-    res.send(data);
+    res.status(200).send(data);
   } catch (err) {
     res.status(500).send('unable to retrieve questions');
-    throw err;
+    console.error(err);
   }
 };
 
@@ -25,10 +25,10 @@ exports.getAnswers = async (req, res) => {
   }
   try {
     const data = await db.getAnswers(question_id, { page, count });
-    res.send(data);
+    res.status(200).send(data);
   } catch (err) {
     res.status(500).send('unable to retrieve answers');
-    throw err;
+    console.error(err);
   }
 };
 

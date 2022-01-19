@@ -1,29 +1,31 @@
 const paths = require('../../server/paths.js');
 
-//TODO: adjust stubs such that they throw an error given certain inputs
-const dbStub = {
-  init: jest.fn(() => 'success'),
-  getQuestions: jest.fn((product_id, { page, count }) => 'success'),
-  getAnswers: jest.fn((question_id, { page, count }) => 'success'),
-  addQuestion: jest.fn((body, name, email, product_id) => 'success'),
-  addAnswer: jest.fn((body, name, email, photos, question_id) => 'success'),
-  markQuestionHelpful: jest.fn((question_id) => 'success'),
-  reportQuestion: jest.fn((question_id) => 'success'),
-  markAnswerHelpful: jest.fn((answer_id) => 'success'),
-  reportAnswer: jest.fn((answer_id) => 'success'),
-};
-
 describe('Server Paths', () => {
+  const goodData = 'success';
+  const dbStub = {};
+  const resStub = {};
   beforeAll(() => {
+    dbStub.init = jest.fn();
     paths.init(dbStub);
   });
-  beforeEach
+  beforeEach(() => {
+    resStub.send = jest.fn();
+    resStub.status = jest.fn().mockReturnValue({ send: resStub.send });
+  });
   describe('GET questions', () => {
-    it ('should call the DB function when provided a product ID', async () => {
-      const req = {query: {productId: 1}}
-      const res = {send: }
-      expect(paths.getQuestions(req, res))
-    })
+    const goodReq = { query: { product_id: 1 } };
+    test('should return with a status of 200', async () => {
+      dbStub.getQuestions = jest.fn();
+      await paths.getQuestions(goodReq, resStub);
+      expect(resStub.status.mock.calls[0][0]).toBe(200);
+      expect(resStub.send.mock.calls.length).toBe(1);
+    });
+    test('should call the DB function when provided a product ID, and return the data', async () => {
+      dbStub.getQuestions = jest.fn().mockReturnValueOnce(goodData);
+      await paths.getQuestions(goodReq, resStub);
+      expect(dbStub.getQuestions.mock.calls.length).toBe(1);
+      expect(resStub.send.mock.calls[0][0]).toBe(goodData);
+    });
   });
   describe('GET answers', () => {});
   describe('POST question', () => {});
