@@ -36,7 +36,7 @@ exports.postQuestion = async (req, res) => {
     return res.status(400).send('missing form data');
   }
   if (email.match(/\w+@\w+\.\w\w+/) === null) return res.status(400).send('invalid email address');
-  return res.status(202).send(202);
+  return res.status(201).send();
 };
 
 exports.postAnswer = async (req, res) => {
