@@ -23,6 +23,8 @@ app.put('/answers/:answer_id/helpful', paths.putAnswerHelpful)
 
 app.put('/answers/:answer_id/report', paths.putAnswerReport)
 
+app.use(express.static('/static'))
+
 db.init().then(() => {
   paths.init(db);
   app.listen(port, () => {
