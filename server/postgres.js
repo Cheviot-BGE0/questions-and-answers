@@ -21,8 +21,8 @@ select id, product_id, date_written, body, asker_name, helpful, coalesce(jsonb_a
       'photos', photos
     ) answers_ob
     from questions q
-    left join answers a on q.id = a.question_id
-    where q.product_id = $1 and q.reported = 0 and a.reported = 0
+    left join answers a on q.id = a.question_id and a.reported = 0
+    where q.product_id = $1 and q.reported = 0
     order by q.id, a.id
   ) temp
   group by id, product_id, date_written, body, asker_email, asker_name, helpful, reported

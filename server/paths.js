@@ -37,7 +37,7 @@ exports.postQuestion = async (req, res) => {
   }
   if (email.match(/\w+@\w+\.\w\w+/) === null) return res.status(400).send('invalid email address');
   try {
-    db.addQuestion(body, name, email, product_id)
+    await db.addQuestion(body, name, email, product_id)
     return res.status(201).send();
   } catch (err) {
     res.status(500).send('unable to post question');
@@ -52,7 +52,7 @@ exports.postAnswer = async (req, res) => {
   if (photos && !Array.isArray(photos)) return res.status(400).send('invalid photos array')
   if (email.match(/\w+@\w+\.\w\w+/) === null) return res.status(400).send('invalid email address');
   try {
-    db.addAnswer(body, name, email, question_id, photos)
+    await db.addAnswer(body, name, email, question_id, photos)
     return res.status(201).send();
   } catch (err) {
     res.status(500).send('unable to post question');

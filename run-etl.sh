@@ -45,7 +45,9 @@ PGPASSWORD=$password psql -h $host -U $user $database -f ETL/postgres/schemaAnsw
 PGPASSWORD=$password psql -h $host -U $user $database -f ETL/postgres/schemaAnswersPhotos.sql
 
 node ETL/postgres -abort "${CSV}/questions.csv" questions
+PGPASSWORD=$password psql -h $host -U $user $database -c "select setval('public.questions_id_seq', (select max(id) + 1 from questions))"
 node ETL/postgres "${CSV}/answers.csv" answers
+PGPASSWORD=$password psql -h $host -U $user $database -c "select setval('public.answers_id_seq', (select max(id) + 1 from answers))"
 node ETL/postgres "${CSV}/answers_photos.csv" answers_photos
 
 echo "Migrating photos into answers"
