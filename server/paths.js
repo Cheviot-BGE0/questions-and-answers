@@ -45,7 +45,18 @@ exports.postQuestion = async (req, res) => {
 };
 
 exports.postAnswer = async (req, res) => {
-  res.status(500).send('not yet implemented');
+  const { body, name, email, question_id, photos } = req.body;
+  if (!body || !name || !email || !testInt(question_id)) {
+    return res.status(400).send('missing form data');
+  }
+  if (photos && !Array.isArray(photos)) return res.status(400).send('invalid photos array')
+  if (email.match(/\w+@\w+\.\w\w+/) === null) return res.status(400).send('invalid email address');
+  try {
+    db.addAnswer(body, name, email, question_id, photos)
+    return res.status(201).send();
+  } catch (err) {
+    res.status(500).send('unable to post question');
+  }
 };
 
 exports.putQuestionHelpful = async (req, res) => {
