@@ -6,7 +6,7 @@ function init() {
   return client.connect();
 }
 
-const questionsQueryJoined = `
+const questionsQuery = `
 select id, product_id, date_written, body, asker_name, helpful, coalesce(jsonb_agg(answers_ob) filter (where question_id is not null), '[]'::jsonb) answers from (
   select
     q.*,
@@ -29,18 +29,10 @@ select id, product_id, date_written, body, asker_name, helpful, coalesce(jsonb_a
   group by id, product_id, date_written, body, asker_email, asker_name, helpful, reported
 `;
 
-const questionsQueryRaw = `
-select q.*, a.* from questions q
-left join answers a on q.id = a.question_id and a.reported = 0
-where q.product_id = $1 and q.reported = 0
-order by q.id, a.id
-`
-
 //parameters
 async function getQuestions(product_id, { page, count }) {
   //TODO: selectable order, page, count
-  const questions = await client.query(questionsQueryRaw, [product_id]);
-  //TODO: photos is null when no photos. Return empty array instead? Rebuild data with empty array when no photos?
+  const questions = await client.query(questionsQuery, [product_id]);
   const response = {
     product_id,
     results: questions.rows,
