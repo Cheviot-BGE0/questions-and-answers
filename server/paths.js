@@ -12,6 +12,7 @@ exports.getQuestions = async (req, res) => {
     const data = await db.getQuestions(product_id, { page, count });
     res.status(200).send(data);
   } catch (err) {
+    console.error(err)
     res.status(500).send('unable to retrieve questions');
   }
 };

@@ -7,9 +7,10 @@ function init() {
 }
 
 const questionsQuery = `
-select id, product_id, date_written, body, asker_name, helpful, coalesce(jsonb_agg(answers_ob), '[]'::jsonb) answers from (
+select id, product_id, date_written, body, asker_name, helpful, coalesce(jsonb_agg(answers_ob) filter (where question_id is not null), '[]'::jsonb) answers from (
   select
     q.*,
+    question_id,
     jsonb_build_object (
       'id', a.id,
       'question_id', a.question_id,
@@ -27,8 +28,6 @@ select id, product_id, date_written, body, asker_name, helpful, coalesce(jsonb_a
   ) temp
   group by id, product_id, date_written, body, asker_email, asker_name, helpful, reported
 `;
-//TODO: figure out how to make answers query return empty array for objects with no contents
-//alternately, just trim empty objects after the query
 
 //parameters
 async function getQuestions(product_id, { page, count }) {
