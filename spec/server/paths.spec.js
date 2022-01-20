@@ -107,7 +107,14 @@ describe('Server Paths', () => {
         photos: ['some address', 'some other address'],
       },
     };
-    const badReqs = [];
+    const badReqs = buildBadBodies(goodReq.body, [
+      ['a missing body', 'body'],
+      ['a missing name', 'name'],
+      ['an invalid question_id', 'question_id', '???'],
+      ['a missing email address', 'email'],
+      ['an invalid email address', 'email', 'someone@something'],
+      ['invalid photos', 'photos', 'someurl']
+    ])
     genericTest(paths.postAnswer, 'addAnswer', goodReq, badReqs, 201);
   });
   describe('PUT questions helpful', () => {
