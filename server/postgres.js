@@ -27,9 +27,8 @@ select id, product_id, date_written, body, asker_name, helpful, coalesce(jsonb_a
   ) temp
   group by id, product_id, date_written, body, asker_email, asker_name, helpful, reported
 `;
-//TODO: figure out how to make query return empty array for objects with no contents (answers, and answers_photos)
-  //alternately, just trim empty objects after the query
-//TODO: join questions should probably be an outer join, to preserve questions with no answers (unless the fact that missing answers returns an array with one object with null on all values, makes an inner join a de facto outer join)
+//TODO: figure out how to make answers query return empty array for objects with no contents
+//alternately, just trim empty objects after the query
 
 //parameters
 async function getQuestions(product_id, { page, count }) {
@@ -43,8 +42,8 @@ async function getQuestions(product_id, { page, count }) {
   return response;
 }
 
-
-const answersQuery = 'select id, question_id, body, date_written, answerer_email, helpful, photos from answers where question_id = $1 and reported = 0 order by id';
+const answersQuery =
+  'select id, question_id, body, date_written, answerer_email, helpful, photos from answers where question_id = $1 and reported = 0 order by id';
 
 //query, parameters
 async function getAnswers(question_id, { page, count }) {
@@ -74,35 +73,39 @@ const addAnswerString = `
 `;
 
 async function addAnswer(body, name, email, photos, question_id) {
-  //TODO: test if await map works
-  //TODO: maybe we can get the select nextval down to one query for an arbitrary number of photos
-  photos = await photos.map(async function (photo) {
-    const nextId = await client.query(`select nextval('photo_id_seq')`);
-    return { url: photo.url, id: nextId };
-  });
-  await client.query(addAnswerString, [
-    question_id,
-    body,
-    new Date(),
-    name,
-    email,
-    JSON.stringify(photos),
-  ]);
+  if (photos && photos.length > 0) {
+    const photoIds = await client.query(
+      'select ' + photos.map(() => `nextval('photo_id_seq')`).join(', ')
+    );
+    photos = JSON.stringify(
+      photos.map((photo, i) => {
+        return { url: photo.url, id: photoIds[i] };
+      })
+    );
+  }
+  await client.query(addAnswerString, [question_id, body, new Date(), name, email, photos]);
 }
 
 async function markQuestionHelpful(question_id) {
-  await client.query('UPDATE questions SET helpful = qNew.helpful + 1 from (select helpful from questions where id = $1) qNew where id = $1', [question_id])
+  await client.query(
+    'UPDATE questions SET helpful = qNew.helpful + 1 from (select helpful from questions where id = $1) qNew where id = $1',
+    [question_id]
+  );
 }
 
 async function reportQuestion(question_id) {
-  await client.query('UPDATE questions SET reported = 1 where id = $1', [question_id])
+  await client.query('UPDATE questions SET reported = 1 where id = $1', [question_id]);
 }
 
 async function markAnswerHelpful(answer_id) {
-  await client.query('UPDATE answers SET helpful = aNew.helpful + 1 from (select helpful from answers where id = $1) aNew where id = $1', [answer_id])}
+  await client.query(
+    'UPDATE answers SET helpful = aNew.helpful + 1 from (select helpful from answers where id = $1) aNew where id = $1',
+    [answer_id]
+  );
+}
 
 async function reportAnswer(answer_id) {
-  await client.query('UPDATE answers SET reported = 1 where id = $1', [answer_id])
+  await client.query('UPDATE answers SET reported = 1 where id = $1', [answer_id]);
 }
 
 module.exports = {
