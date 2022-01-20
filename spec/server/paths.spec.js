@@ -79,7 +79,7 @@ describe('Server Paths', () => {
     ];
     genericTest(paths.getAnswers, 'getAnswers', goodReq, badReqs, 200, 'success');
   });
-  describe.only('POST question', () => {
+  describe('POST question', () => {
     const goodReq = {
       body: {
         body: 'something',
@@ -93,7 +93,7 @@ describe('Server Paths', () => {
       ['a missing name', 'name'],
       ['an invalid product_id', 'product_id', 'red shirt'],
       ['a missing email address', 'email'],
-      ['an invalid email address', 'email', 'someone@something'],
+      ['an invalid email address', 'email', 'someone@something'], //TODO: more varied invalid emails
     ]);
     genericTest(paths.postQuestion, 'addQuestion', goodReq, badReqs, 201);
   });
