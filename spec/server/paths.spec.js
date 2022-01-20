@@ -53,6 +53,14 @@ describe('Server Paths', () => {
     });
   };
 
+  const buildBadBodies = (body, mutations) => {
+    return mutations.map(([title, key, val]) => {
+      const badReq = { body: Object.assign({}, body) };
+      badReq.body[key] = val;
+      return [title, badReq];
+    });
+  };
+
   //----------~~~~~~~~~~========== Actual tests ==========~~~~~~~~~~----------
 
   describe('GET questions', () => {
@@ -71,14 +79,35 @@ describe('Server Paths', () => {
     ];
     genericTest(paths.getAnswers, 'getAnswers', goodReq, badReqs, 200, 'success');
   });
-  describe('POST question', () => {
-    const goodReq = { query: {}, params: {}, body: {} };
-    const badReqs = [] //TODO: fill out post question bad requests list (lots)
+  describe.only('POST question', () => {
+    const goodReq = {
+      body: {
+        body: 'something',
+        name: 'someone',
+        email: 'someone@somewhere.something',
+        product_id: 1,
+      },
+    };
+    const badReqs = buildBadBodies(goodReq.body, [
+      ['a missing body', 'body'],
+      ['a missing name', 'name'],
+      ['an invalid product_id', 'product_id', 'red shirt'],
+      ['a missing email address', 'email'],
+      ['an invalid email address', 'email', 'someone@something'],
+    ]);
     genericTest(paths.postQuestion, 'addQuestion', goodReq, badReqs, 201);
   });
   describe('POST answer', () => {
-    const goodReq = { query: {}, params: {}, body: {} };
-    const badReqs = [] //TODO: fill out post answer bad requests list (lots)
+    const goodReq = {
+      body: {
+        body: 'something',
+        name: 'someone',
+        email: 'someone@somewhere.something',
+        question_id: 1,
+        photos: ['some address', 'some other address'],
+      },
+    };
+    const badReqs = [];
     genericTest(paths.postAnswer, 'addAnswer', goodReq, badReqs, 201);
   });
   describe('PUT questions helpful', () => {
