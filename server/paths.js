@@ -12,7 +12,6 @@ exports.getQuestions = async (req, res) => {
     const data = await db.getQuestions(product_id, { page, count });
     res.status(200).send(data);
   } catch (err) {
-    console.error(err)
     res.status(500).send('unable to retrieve questions');
   }
 };
@@ -56,6 +55,7 @@ exports.postAnswer = async (req, res) => {
     await db.addAnswer(body, name, email, question_id, photos)
     return res.status(201).send();
   } catch (err) {
+    console.error(err)
     res.status(500).send('unable to post question');
   }
 };

@@ -71,7 +71,7 @@ const addAnswerString = `
     values ($1, $2, $3, $4, $5, 0, 0, $6)
 `;
 
-async function addAnswer(body, name, email, photos, question_id) {
+async function addAnswer(body, name, email, question_id, photos) {
   if (photos && photos.length > 0) {
     const photoIds = await client.query(
       'select ' + photos.map(() => `nextval('photo_id_seq')`).join(', ')
@@ -81,6 +81,8 @@ async function addAnswer(body, name, email, photos, question_id) {
         return { url: photo.url, id: photoIds[i] };
       })
     );
+  } else {
+    photos = '[]'
   }
   await client.query(addAnswerString, [question_id, body, new Date(), name, email, photos]);
 }
