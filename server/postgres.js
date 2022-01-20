@@ -7,7 +7,7 @@ function init() {
 }
 
 const questionsQuery = `
-select id, product_id, date_written, body, asker_name, helpful, reported, coalesce(jsonb_agg(answers_ob), '[]'::jsonb) answers from (
+select id, product_id, date_written, body, asker_name, helpful, coalesce(jsonb_agg(answers_ob), '[]'::jsonb) answers from (
   select
     q.*,
     jsonb_build_object (
@@ -18,7 +18,6 @@ select id, product_id, date_written, body, asker_name, helpful, reported, coales
       'answerer_name', answerer_name,
       'answerer_email', answerer_email,
       'helpful', a.helpful,
-      'reported', a.reported,
       'photos', photos
     ) answers_ob
     from questions q
@@ -45,7 +44,7 @@ async function getQuestions(product_id, { page, count }) {
 }
 
 
-const answersQuery = 'select * from answers where question_id = $1 and reported = 0 order by id';
+const answersQuery = 'select id, question_id, body, date_written, answerer_email, helpful, photos from answers where question_id = $1 and reported = 0 order by id';
 
 //query, parameters
 async function getAnswers(question_id, { page, count }) {
