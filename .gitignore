@@ -2,4 +2,4 @@ node_modules
 *.csv
 !spec/ETL/dummy.csv
 config.js
-.env
+private.env

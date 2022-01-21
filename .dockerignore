@@ -1,4 +1,4 @@
 node_modules
 ETL
 config.js
-.env
+private.env

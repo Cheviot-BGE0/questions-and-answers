@@ -1,6 +1,6 @@
 services:
   server:
-    build: .
+    image: liamrichardson/hackreactor:questions-and-answers-server
     ports:
       - "80:3000"
     env_file:
