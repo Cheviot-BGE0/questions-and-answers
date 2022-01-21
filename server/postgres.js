@@ -1,9 +1,10 @@
 const fs = require('fs');
-if (!fs.existsSync('../config.js')) {
-  throw new Error(`Config file not found! Please run server/setup.sh:
-  "chmod +x server/setup.sh && ./server/setup.sh"
-  (or, if you have npm, "npm run setup")
-  or copy an existing config.js.')
+if (!fs.existsSync('./config.js')) {
+
+  throw new Error(`\x1b[31mConfig file not found!\x1b[0m Please run server/setup.sh:
+  \x1b[32mchmod +x server/setup.sh && ./server/setup.sh\x1b[0m
+  (or, if you have npm, \x1b[32mnpm run setup\x1b[0m)
+  or \x1b[33mcopy an existing config.js.\x1b[0m`)
 }
 const { host, database, user, password } = require('../config.js');
 const { Client } = require('pg');
