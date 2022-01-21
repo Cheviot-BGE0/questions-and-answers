@@ -29,6 +29,8 @@ select id, product_id, date_written, body, asker_name, helpful, coalesce(jsonb_a
   group by id, product_id, date_written, body, asker_email, asker_name, helpful, reported
 `;
 
+
+
 //parameters
 async function getQuestions(product_id, { page, count }) {
   //TODO: selectable order, page, count
