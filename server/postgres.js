@@ -1,5 +1,12 @@
-const { Client } = require('pg');
+const fs = require('fs');
+if (!fs.existsSync('../config.js')) {
+  throw new Error(`Config file not found! Please run server/setup.sh:
+  "chmod +x server/setup.sh && ./server/setup.sh"
+  (or, if you have npm, "npm run setup")
+  or copy an existing config.js.')
+}
 const { host, database, user, password } = require('../config.js');
+const { Client } = require('pg');
 
 const client = new Client({ host, database, user, password });
 function init() {
