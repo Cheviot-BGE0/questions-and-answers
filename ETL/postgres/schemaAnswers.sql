@@ -9,7 +9,7 @@ create table answers(
   answerer_email varchar(60),
   helpful int,
   reported int,
-  photos jsonb,
+  photos jsonb default '[]'::jsonb,
   primary key(id),
   constraint fk_question
     foreign key(question_id)

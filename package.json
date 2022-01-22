@@ -5,10 +5,11 @@
   "main": "index.js",
   "scripts": {
     "start": "node server",
-    "postinstall": "chmod +x setup.sh & npm run setup-postgres",
-    "test": "jest",
-    "setup-postgres": "./setup.sh",
-    "start-dev": "nodemon server"
+    "postinstall": "chmod +x setup.sh & ./setup.sh",
+    "test-ETL": "jest spec/ETL",
+    "test-server": "jest spec/server",
+    "start-dev": "nodemon server",
+    "test-load": "Artillery run spec/load/getQuestions.yaml"
   },
   "repository": {
     "type": "git",

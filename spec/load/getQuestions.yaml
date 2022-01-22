@@ -1,0 +1,15 @@
+config:
+  target: "http://34.228.54.247:3000"
+  phases:
+    - duration: 60
+      arrivalRate: 10
+      rampTo: 600
+      name: Warm up
+    - duration: 60
+      arrivalRate: 600
+      name: A lot
+scenarios:
+  - name: "Load products"
+    flow:
+      - get:
+          url: "/questions?product_id={{ $randomNumber(900000,1000000) }}"

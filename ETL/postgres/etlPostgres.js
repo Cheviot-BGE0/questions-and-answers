@@ -8,9 +8,9 @@ const path = require('path');
 const config = require('../../config.js');
 
 const docs = `
-Loads data from a proved CSV file into a postgres db.
+Loads data from a provided CSV file into a postgres db.
 
-Syntax: node ETL/postgres "path/to/csv" database_name table_name [-h|batch|end|map|overerror|U|p|abort]
+Syntax: node ETL/postgres "path/to/csv" table_name [-h|batch|end|map|overerror|abort]
 options:
 h           displays this help text
 batch #     Number of entries to load per batch
@@ -118,7 +118,7 @@ module.exports = async function main() {
 
   // ----------~~~~~~~~~~========== Process arguments ==========~~~~~~~~~~----------
   const args = parseArgs(
-    ['filePath', 'database', 'table'],
+    ['filePath', 'table'],
     ['overerror', 'abort', 'silent'],
     { end: 0, progress: 0, batch: 500, map: null, U: null, p: null },
     docs
@@ -159,7 +159,7 @@ module.exports = async function main() {
   if (!args.table) args.table = await CLI.prompt('table to import to: ');
 
   // ----------~~~~~~~~~~========== Connect to database ==========~~~~~~~~~~----------
-  client = await postgres(config.database, config.user, config.password);
+  client = await postgres(config.host, config.database, config.user, config.password);
 
   // ----------~~~~~~~~~~========== Begin reading and importing ==========~~~~~~~~~~----------
   CLI.log(args.silent, `\nimporting from ${args.filePath} to table ${args.table}`);
