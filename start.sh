@@ -28,4 +28,4 @@ if [ ! -e ".env" ]; then
 fi
 
 docker pull liamrichardson/hackreactor:questions-and-answers-server
-docker run -dp 80:3000 --env-file .env liamrichardson/hackreactor:questions-and-answers-server
+docker run -dp 80:3000 --restart on-failure --env-file .env liamrichardson/hackreactor:questions-and-answers-server
