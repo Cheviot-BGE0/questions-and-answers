@@ -48,7 +48,7 @@ async function getQuestions(product_id, { page, count }) {
 }
 
 const answersQuery =
-  'select id answer_id, body, date_written date, helpful helpfulness, photos from answers where question_id = $1 and reported = 0 order by id';
+  'select id answer_id, body, date_written date, answerer_name, helpful helpfulness, photos from answers where question_id = $1 and reported = 0 order by id';
 
 //query, parameters
 async function getAnswers(question_id, { page, count }) {
