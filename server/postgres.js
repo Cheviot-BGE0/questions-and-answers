@@ -1,24 +1,26 @@
+// const { host, database, user, password } = require('../config.js');
 const { Client } = require('pg');
-const { host, database, user, password } = require('../config.js');
 
-const client = new Client({ host, database, user, password });
+const client = new Client({
+  host:process.env.HOST,
+  database: process.env.DATABASE,
+  user: process.env.USER,
+  password: process.env.PASSWORD });
 function init() {
   return client.connect();
 }
 
 const questionsQuery = `
-select id, product_id, date_written, body, asker_name, helpful, coalesce(jsonb_agg(answers_ob) filter (where question_id is not null), '[]'::jsonb) answers from (
+select id question_id, date_written question_date, body question_body, asker_name, helpful question_helpfulness, reported, coalesce(jsonb_agg(answers_ob) filter (where question_id is not null), '[]'::jsonb) answers from (
   select
     q.*,
     question_id,
     jsonb_build_object (
       'id', a.id,
-      'question_id', a.question_id,
       'body', a.body,
-      'date_written', a.date_written,
+      'date', a.date_written,
       'answerer_name', answerer_name,
-      'answerer_email', answerer_email,
-      'helpful', a.helpful,
+      'helpfulness', a.helpful,
       'photos', photos
     ) answers_ob
     from questions q
@@ -29,7 +31,10 @@ select id, product_id, date_written, body, asker_name, helpful, coalesce(jsonb_a
   group by id, product_id, date_written, body, asker_email, asker_name, helpful, reported
 `;
 
-
+function paginate(array, page, count) {
+  if (!page || !count) return array;
+  return array.slice(page * count - 1, page * count - 1 + count)
+}
 
 //parameters
 async function getQuestions(product_id, { page, count }) {
@@ -39,11 +44,11 @@ async function getQuestions(product_id, { page, count }) {
     product_id,
     results: questions.rows,
   };
-  return response;
+  return paginate(response, page, count);
 }
 
 const answersQuery =
-  'select id, question_id, body, date_written, answerer_email, helpful, photos from answers where question_id = $1 and reported = 0 order by id';
+  'select id answer_id, body, date_written date, answerer_name, helpful helpfulness, photos from answers where question_id = $1 and reported = 0 order by id';
 
 //query, parameters
 async function getAnswers(question_id, { page, count }) {
@@ -54,7 +59,7 @@ async function getAnswers(question_id, { page, count }) {
     question_id,
     results: answers.rows,
   };
-  return response;
+  return paginate(response, page, count);
 }
 
 const addQuestionString = `

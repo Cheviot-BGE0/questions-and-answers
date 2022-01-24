@@ -1,5 +1,4 @@
 node_modules
-*.csv
-!spec/ETL/dummy.csv
+ETL
 config.js
 private.env

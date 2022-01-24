@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node server",
-    "postinstall": "chmod +x setup.sh & ./setup.sh",
+    "setup": "chmod +x server/setup.sh && ./server/setup.sh",
+    "Load": "chmod +x ETL/run.sh && ./ETL/run.sh",
     "test-ETL": "jest spec/ETL",
     "test-server": "jest spec/server",
     "start-dev": "nodemon server",
